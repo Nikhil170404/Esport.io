@@ -10,6 +10,11 @@ import Signup from './components/Auth/Signup';
 import Login from './components/Auth/Login';
 import Profile from './components/Profile/Profile';
 import Admin from './components/Admin/Admin';
+import AboutUs from './components/AboutUs/AboutUs';
+import ContactUs from './components/ContactUs/ContactUs';
+import Tournaments from './components/Tournaments/Tournaments';
+import Leaderboard from './components/Leaderboard/Leaderboard';
+import Settings from './components/Settings/Settings';
 import './index.css';
 
 const App = () => {
@@ -37,30 +42,17 @@ const App = () => {
       <Navbar />
       <div className="container">
         <Routes>
-          <Route
-            path="/"
-            element={!user ? <LandingPage /> : <Navigate to={determineRedirectPath()} />}
-          />
-          <Route
-            path="/home"
-            element={user && !user.isAdmin ? <Home /> : <Navigate to={determineRedirectPath()} />}
-          />
-          <Route
-            path="/signup"
-            element={!user ? <Signup /> : <Navigate to={determineRedirectPath()} />}
-          />
-          <Route
-            path="/login"
-            element={!user ? <Login /> : <Navigate to={determineRedirectPath()} />}
-          />
-          <Route
-            path="/profile"
-            element={user ? <Profile /> : <Navigate to="/login" />}
-          />
-          <Route
-            path="/admin"
-            element={user && user.isAdmin ? <Admin /> : <Navigate to="/login" />}
-          />
+          <Route path="/" element={!user ? <LandingPage /> : <Navigate to={determineRedirectPath()} />} />
+          <Route path="/home" element={user && !user.isAdmin ? <Home /> : <Navigate to={determineRedirectPath()} />} />
+          <Route path="/signup" element={!user ? <Signup /> : <Navigate to={determineRedirectPath()} />} />
+          <Route path="/login" element={!user ? <Login /> : <Navigate to={determineRedirectPath()} />} />
+          <Route path="/profile" element={user ? <Profile /> : <Navigate to="/login" />} />
+          <Route path="/admin" element={user && user.isAdmin ? <Admin /> : <Navigate to="/login" />} />
+          <Route path="/aboutus" element={<AboutUs />} />
+          <Route path="/contactus" element={<ContactUs />} />
+          <Route path="/tournaments" element={user ? <Tournaments /> : <Navigate to="/login" />} />
+          <Route path="/leaderboard" element={user ? <Leaderboard /> : <Navigate to="/login" />} />
+          <Route path="/settings" element={user ? <Settings /> : <Navigate to="/login" />} />
         </Routes>
       </div>
     </Router>
