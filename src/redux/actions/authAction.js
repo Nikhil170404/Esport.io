@@ -3,10 +3,12 @@ import { signInWithEmailAndPassword, signOut, createUserWithEmailAndPassword, up
 import { setDoc, doc, updateDoc, getDoc } from 'firebase/firestore';
 
 // Admin UID
-const ADMIN_UID = 'HwjLgymS9vYxF8ekSOm54XuQLKm1';
+const ADMIN_UID = 'r7yLC41g4tMQqUCd5y4Rjls6Pch2';
 
 // Action for user login
+// Improved login action
 export const login = (email, password) => async (dispatch) => {
+  dispatch({ type: 'LOGIN_REQUEST' }); // Optional: Dispatch a loading action
   try {
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
@@ -17,24 +19,19 @@ export const login = (email, password) => async (dispatch) => {
     const userPurchasesDoc = await getDoc(userPurchasesRef);
 
     let purchasedGames = [];
-
     if (userPurchasesDoc.exists()) {
       purchasedGames = userPurchasesDoc.data().purchases || [];
     } else {
-      // If the document doesn't exist, initialize with an empty purchases array
       await setDoc(userPurchasesRef, { purchases: [] });
     }
 
     const userData = { ...user, isAdmin };
-
     dispatch({ type: 'LOGIN_SUCCESS', payload: { user: userData, purchasedGames } });
-    dispatch({ type: 'SET_USER', payload: { user: userData, purchasedGames } });
-
-    // Save user data to local storage
     localStorage.setItem('user', JSON.stringify(userData));
     localStorage.setItem('lastActivity', new Date().toString());
   } catch (error) {
     dispatch({ type: 'LOGIN_FAILURE', payload: error.message });
+    console.error('Login failed:', error.message); // Enhanced error logging
   }
 };
 

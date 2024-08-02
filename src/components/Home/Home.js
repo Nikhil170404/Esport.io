@@ -52,10 +52,11 @@ const Home = () => {
   };
 
   const filterGames = (games, text) => {
+    const lowercasedText = text.toLowerCase();
     return games.filter(
       (game) =>
-        game.title.toLowerCase().includes(text.toLowerCase()) ||
-        game.description.toLowerCase().includes(text.toLowerCase())
+        (game.title && game.title.toLowerCase().includes(lowercasedText)) ||
+        (game.description && game.description.toLowerCase().includes(lowercasedText))
     );
   };
 
@@ -127,8 +128,8 @@ const Home = () => {
                   description={game.description}
                   gameName={game.gameName}
                   participants={game.participants}
-                  entryFee={parseFloat(game.entryFee)}
-                  prizeMoney={parseFloat(game.prizeMoney)}
+                  entryFee={parseFloat(game.entryFee) || 0}
+                  prizeMoney={parseFloat(game.prizeMoney) || 0}
                   onPurchase={handlePurchase}
                   onFavorite={handleFavorite}
                   isFavorite={favorites.includes(game.gameName)}
@@ -150,8 +151,8 @@ const Home = () => {
                     description={game.description}
                     gameName={game.gameName}
                     participants={game.participants}
-                    entryFee={parseFloat(game.entryFee)}
-                    prizeMoney={parseFloat(game.prizeMoney)}
+                    entryFee={parseFloat(game.entryFee) || 0}
+                    prizeMoney={parseFloat(game.prizeMoney) || 0}
                     onPurchase={handlePurchase}
                     onFavorite={handleFavorite}
                     isFavorite={favorites.includes(game.gameName)}
