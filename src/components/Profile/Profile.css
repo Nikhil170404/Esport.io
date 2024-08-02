@@ -1,0 +1,41 @@
+/* Profile.css */
+.profile-container {
+  width: 80%;
+  margin: 0 auto;
+  padding: 40px 0;
+}
+
+.profile-image {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 20px;
+}
+
+.profile-edit-form label {
+  display: block;
+  margin: 10px 0 5px;
+}
+
+.profile-edit-form input, .profile-edit-form textarea {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+}
+
+.profile-edit-form button {
+  padding: 10px 20px;
+  background: #FF5733;
+  color: #fff;
+  border: inset;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-right: 10px;
+}
+
+.profile-edit-form button:hover {
+  background: #e04e2f;
+}
