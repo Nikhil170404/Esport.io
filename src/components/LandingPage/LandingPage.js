@@ -7,10 +7,6 @@ const LandingPage = () => {
       <div className="hero-section">
         <h1 className="fade-in">Welcome to the Esports Platform</h1>
         <p className="fade-in">Your gateway to exciting esports tournaments and gaming experiences.</p>
-        <div className="cta-buttons">
-          <a href="/signup" className="cta-button zoom-in">Sign Up</a>
-          <a href="/login" className="cta-button zoom-in">Login</a>
-        </div>
       </div>
       <div className="info-section">
         <div className="info-card bounce-in">
