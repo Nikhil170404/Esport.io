@@ -5,7 +5,7 @@ import { purchaseGame } from '../../redux/actions/gameActions';
 import { firestore } from '../../firebase';
 import { doc, onSnapshot, updateDoc, getDoc, arrayUnion } from 'firebase/firestore';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faHeart, faShoppingCart, faStar } from '@fortawesome/free-solid-svg-icons';
+import { faHeart, faShoppingCart, faStar, faEye } from '@fortawesome/free-solid-svg-icons';
 import './GameCard.css';
 
 const GameCard = ({
@@ -23,7 +23,7 @@ const GameCard = ({
   const [showCredentials, setShowCredentials] = useState(false);
   const [gameCredentials, setGameCredentials] = useState({ roomId: '', roomPassword: '' });
   const [full, setFull] = useState(false);
-  const [participants, setParticipants] = useState(0); // Add state for participants
+  const [participants, setParticipants] = useState(0);
 
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
@@ -34,7 +34,6 @@ const GameCard = ({
     const unsubscribe = onSnapshot(gameRef, (docSnapshot) => {
       const gameData = docSnapshot.data();
       if (gameData) {
-        console.log(`Game data: ${JSON.stringify(gameData)}`);
         setParticipants(gameData.participants);
         setFull(gameData.participants <= 0);
         if (gameData.roomId && gameData.roomPassword) {
@@ -49,12 +48,12 @@ const GameCard = ({
       }
     });
 
-    return unsubscribe; // Clean up subscription on unmount
+    return unsubscribe;
   }, [id, isPurchased]);
 
   useEffect(() => {
     const unsubscribe = fetchGameData();
-    return () => unsubscribe(); // Clean up subscription on unmount
+    return () => unsubscribe();
   }, [fetchGameData]);
 
   const handlePurchase = async () => {
@@ -69,29 +68,46 @@ const GameCard = ({
     }
 
     try {
-      const gameRef = doc(firestore, 'games', id);
-      const gameDoc = await getDoc(gameRef);
+      const userPurchasesRef = doc(firestore, 'users', user.uid);
+      const userPurchasesDoc = await getDoc(userPurchasesRef);
+      
+      if (userPurchasesDoc.exists()) {
+        const userPurchasesData = userPurchasesDoc.data();
 
-      if (gameDoc.exists()) {
-        const gameData = gameDoc.data();
-
-        if (gameData.participants > 0) {
-          await updateDoc(gameRef, {
-            participants: gameData.participants - 1
-          });
-
-          const userPurchasesRef = doc(firestore, 'users', user.uid);
-          await updateDoc(userPurchasesRef, {
-            purchasedGames: arrayUnion(id)
-          });
-
-          dispatch(purchaseGame(gameName));
-          setShowCredentials(true);
-        } else {
-          setFull(true);
+        if (userPurchasesData.purchasedGames && userPurchasesData.purchasedGames.includes(id)) {
+          console.warn("Game already purchased");
+          return;
         }
-      } else {
-        console.error("No such game!");
+
+        const gameRef = doc(firestore, 'games', id);
+        const gameDoc = await getDoc(gameRef);
+
+        if (gameDoc.exists()) {
+          const gameData = gameDoc.data();
+
+          if (gameData.participants > 0) {
+            await updateDoc(gameRef, {
+              participants: gameData.participants - 1
+            });
+
+            await updateDoc(userPurchasesRef, {
+              purchasedGames: arrayUnion(id),
+              purchaseHistory: arrayUnion({
+                gameId: id,
+                gameName,
+                entryFee,
+                purchaseDate: new Date()
+              })
+            });
+
+            dispatch(purchaseGame(gameName));
+            setShowCredentials(true);
+          } else {
+            setFull(true);
+          }
+        } else {
+          console.error("No such game!");
+        }
       }
     } catch (error) {
       console.error("Error purchasing game: ", error);
@@ -102,45 +118,55 @@ const GameCard = ({
     if (full) {
       return 'Full';
     }
-    return isPurchased ? 'Purchased' : `Buy ${entryFee} USD`;
+    return isPurchased ? 'View Credentials' : `Buy ${entryFee} USD`;
   }, [full, isPurchased, entryFee]);
 
   const favoriteIcon = useMemo(() => (
     isFavorite ? faHeart : faStar
   ), [isFavorite]);
 
+  const handleButtonClick = () => {
+    if (isPurchased) {
+      setShowCredentials(!showCredentials);
+    } else {
+      handlePurchase();
+    }
+  };
+
   return (
     <div className="game-card">
       <div className="game-card-header">
-        <img src={imageUrl || 'default-image-url.png'} alt={title} className="game-image" />
-        <h3 className="game-title">{title}</h3>
+        <img src={imageUrl || 'default-image-url.png'} alt={title} className="game-card-image" />
+        <h3 className="game-card-title">{title}</h3>
       </div>
-      <p className="game-description">{description}</p>
-      <div className="game-info">
-        <p>Participants: {participants}</p>
-        <p>Entry Fee: {entryFee} USD</p>
-        <p>Prize Money: {prizeMoney} USD</p>
-      </div>
-      <div className="game-actions">
-        <button
-          className="purchase-button"
-          onClick={handlePurchase}
-          disabled={isPurchased || full}
-        >
-          <FontAwesomeIcon icon={faShoppingCart} />
-          {purchaseButtonText}
-        </button>
-        <button className="favorite-button" onClick={() => onFavorite(gameName)}>
-          <FontAwesomeIcon icon={favoriteIcon} />
-        </button>
-      </div>
-      {showCredentials && (
-        <div className="game-credentials">
-          <h4>Game Credentials:</h4>
-          <p>Room ID: {gameCredentials.roomId}</p>
-          <p>Room Password: {gameCredentials.roomPassword}</p>
+      <div className="game-card-content">
+        <p className="game-card-description">{description}</p>
+        <div className="game-info">
+          <p>Participants: {participants}</p>
+          <p>Entry Fee: {entryFee} USD</p>
+          <p>Prize Money: {prizeMoney} USD</p>
         </div>
-      )}
+        <div className="game-actions">
+          <button
+            className={`purchase-button ${isPurchased ? 'purchased' : ''}`}
+            onClick={handleButtonClick}
+            disabled={full}
+          >
+            <FontAwesomeIcon icon={isPurchased ? faEye : faShoppingCart} />
+            {purchaseButtonText}
+          </button>
+          <button className="favorite-button" onClick={() => onFavorite(gameName)}>
+            <FontAwesomeIcon icon={favoriteIcon} />
+          </button>
+        </div>
+        {showCredentials && (
+          <div className="game-credentials">
+            <h4>Game Credentials:</h4>
+            <p>Room ID: {gameCredentials.roomId}</p>
+            <p>Room Password: {gameCredentials.roomPassword}</p>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

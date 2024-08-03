@@ -4,21 +4,13 @@ import { fetchGames, addGame, updateGame, deleteGame } from '../../redux/actions
 import './Admin.css'; // Import your CSS file for styling
 
 // Mock implementations for testing
-const fetchUserJoinedGames = async (userId) => {
-  // Return a mock list of joined game IDs
-  return Promise.resolve([1, 2, 3]); // Replace with actual logic
-};
 
-const joinGame = async (gameId, userId) => {
-  // Mock function to simulate joining a game
-  return Promise.resolve(); // Replace with actual logic
-};
+
+
 
 const AdminPanel = () => {
   const dispatch = useDispatch();
   const { games, isLoading, error } = useSelector((state) => state.game);
-  const user = useSelector((state) => state.user); // Assuming user state for checking if user has joined
-
   const [title, setTitle] = useState('');
   const [gameName, setGameName] = useState('');
   const [description, setDescription] = useState('');
@@ -30,18 +22,14 @@ const AdminPanel = () => {
   const [roomId, setRoomId] = useState('');
   const [roomPassword, setRoomPassword] = useState('');
   const [currentGameId, setCurrentGameId] = useState(null);
-  const [joinedGames, setJoinedGames] = useState(new Set()); // Track games the user has joined
+
 
   useEffect(() => {
     dispatch(fetchGames());
   }, [dispatch]);
 
   // Fetch the games the user has joined
-  useEffect(() => {
-    if (user) {
-      fetchUserJoinedGames(user.id).then(joined => setJoinedGames(new Set(joined)));
-    }
-  }, [user]);
+ 
 
   // Cleanup Blob URL on component unmount or image change
   useEffect(() => {
@@ -101,12 +89,7 @@ const AdminPanel = () => {
     setCurrentGameId(game.id);
   };
 
-  const handleJoinGame = (game) => {
-    joinGame(game.id, user.id).then(() => {
-      setParticipants(prev => prev - 1); // Decrement participants
-      setJoinedGames(prev => new Set(prev).add(game.id)); // Add game to joined list
-    });
-  };
+
 
   return (
     <div className="admin-panel">
@@ -222,13 +205,6 @@ const AdminPanel = () => {
             <p>Prize Pool: ${game.prizePool}</p>
             <p>Room ID: {game.roomId}</p>
             <p>Room Password: {game.roomPassword}</p>
-            {joinedGames.has(game.id) ? (
-              <p>You've joined this game.</p>
-            ) : (
-              <button onClick={() => handleJoinGame(game)} className="btn btn-join">
-                Join Game
-              </button>
-            )}
             <button onClick={() => handleEditGame(game)} className="btn btn-edit">
               Edit
             </button>
