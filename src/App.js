@@ -42,7 +42,7 @@ const App = () => {
       <Navbar />
       <div className="container">
         <Routes>
-          <Route path="/" element={!user ? <LandingPage /> : <Navigate to={determineRedirectPath()} />} />
+          <Route path="/" element={<LandingPage />} />
           <Route path="/home" element={user && !user.isAdmin ? <Home /> : <Navigate to={determineRedirectPath()} />} />
           <Route path="/signup" element={!user ? <Signup /> : <Navigate to={determineRedirectPath()} />} />
           <Route path="/login" element={!user ? <Login /> : <Navigate to={determineRedirectPath()} />} />
@@ -53,6 +53,7 @@ const App = () => {
           <Route path="/tournaments" element={user ? <Tournaments /> : <Navigate to="/login" />} />
           <Route path="/leaderboard" element={user ? <Leaderboard /> : <Navigate to="/login" />} />
           <Route path="/settings" element={user ? <Settings /> : <Navigate to="/login" />} />
+          <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </div>
     </Router>

@@ -38,13 +38,13 @@ const Home = () => {
     return games.slice().sort((a, b) => {
       switch (option) {
         case 'title':
-          return a.title.localeCompare(b.title);
+          return (a.title || '').localeCompare(b.title || '');
         case 'participants':
-          return b.participants - a.participants;
+          return (b.participants || 0) - (a.participants || 0);
         case 'entryFee':
-          return a.entryFee - b.entryFee;
+          return (a.entryFee || 0) - (b.entryFee || 0);
         case 'prizeMoney':
-          return b.prizeMoney - a.prizeMoney;
+          return (b.prizeMoney || 0) - (a.prizeMoney || 0);
         default:
           return 0;
       }
