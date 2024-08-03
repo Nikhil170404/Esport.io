@@ -1,8 +1,6 @@
+/* AdminPanel styles */
 .admin-panel {
   padding: 20px;
-  background-color: #f9f9f9;
-  border-radius: 8px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
 .admin-form {
@@ -13,36 +11,26 @@
   margin-bottom: 15px;
 }
 
-label {
+.form-group label {
   display: block;
   margin-bottom: 5px;
-  font-weight: bold;
 }
 
-input[type="text"],
-input[type="number"],
-textarea,
-select {
+.form-group input,
+.form-group textarea,
+.form-group select {
   width: 100%;
   padding: 8px;
-  border: 1px solid #ddd;
+  border: 1px solid #ccc;
   border-radius: 4px;
-}
-
-textarea {
-  resize: vertical;
-}
-
-input[type="file"] {
-  margin-top: 5px;
 }
 
 .btn {
-  padding: 10px 15px;
+  padding: 10px 20px;
   border: none;
   border-radius: 4px;
-  cursor: pointer;
   color: #fff;
+  cursor: pointer;
 }
 
 .btn-primary {
@@ -50,7 +38,7 @@ input[type="file"] {
 }
 
 .btn-edit {
-  background-color: #28a745;
+  background-color: #ffc107;
 }
 
 .btn-delete {
@@ -60,30 +48,55 @@ input[type="file"] {
 .game-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 15px;
+  gap: 20px;
 }
 
 .game-card {
-  background-color: #fff;
   border: 1px solid #ddd;
-  border-radius: 8px;
+  border-radius: 4px;
   padding: 15px;
-  width: calc(100% - 15px);
+  width: calc(33.333% - 20px);
   box-sizing: border-box;
-  position: relative;
 }
 
-.game-card img {
+.game-image {
   width: 100%;
   height: auto;
-  border-radius: 8px;
-}
-
-.game-actions {
-  margin-top: 10px;
+  border-radius: 4px;
 }
 
 .admin-error {
-  color: red;
-  font-weight: bold;
+  color: #dc3545;
+}
+
+.modal {
+  padding: 20px;
+  background: #fff;
+  border-radius: 4px;
+  width: 50%;
+  max-width: 600px;
+}
+
+.overlay {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.participants-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.participants-table th,
+.participants-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+}
+
+.participants-table th {
+  background-color: #f4f4f4;
+}
+
+.btn-close {
+  margin-top: 20px;
+  background-color: #007bff;
 }

@@ -2,15 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchGames, addGame, updateGame, deleteGame } from '../../redux/actions/gameActions';
 import './Admin.css'; // Import your CSS file for styling
-
-// Mock implementations for testing
-
-
-
+import { doc, getDoc } from 'firebase/firestore';
+import { firestore } from '../../firebase';
+import Modal from 'react-modal'; // Install react-modal if not already done
 
 const AdminPanel = () => {
   const dispatch = useDispatch();
   const { games, isLoading, error } = useSelector((state) => state.game);
+
   const [title, setTitle] = useState('');
   const [gameName, setGameName] = useState('');
   const [description, setDescription] = useState('');
@@ -22,16 +21,31 @@ const AdminPanel = () => {
   const [roomId, setRoomId] = useState('');
   const [roomPassword, setRoomPassword] = useState('');
   const [currentGameId, setCurrentGameId] = useState(null);
-
+  const [participantsData, setParticipantsData] = useState({});
+  const [selectedParticipants, setSelectedParticipants] = useState([]);
+  const [modalIsOpen, setModalIsOpen] = useState(false);
 
   useEffect(() => {
     dispatch(fetchGames());
   }, [dispatch]);
 
-  // Fetch the games the user has joined
- 
+  useEffect(() => {
+    const fetchParticipantsData = async () => {
+      const newParticipantsData = {};
+      for (const game of games) {
+        const gameRef = doc(firestore, 'games', game.id);
+        const gameDoc = await getDoc(gameRef);
+        const gameData = gameDoc.data();
+        if (gameData && gameData.participantsData) {
+          newParticipantsData[game.id] = gameData.participantsData;
+        }
+      }
+      setParticipantsData(newParticipantsData);
+    };
 
-  // Cleanup Blob URL on component unmount or image change
+    fetchParticipantsData();
+  }, [games]);
+
   useEffect(() => {
     return () => {
       if (image) {
@@ -89,12 +103,20 @@ const AdminPanel = () => {
     setCurrentGameId(game.id);
   };
 
+  const openParticipantsModal = (gameId) => {
+    setSelectedParticipants(participantsData[gameId] || []);
+    setModalIsOpen(true);
+  };
 
+  const closeParticipantsModal = () => {
+    setModalIsOpen(false);
+  };
 
   return (
     <div className="admin-panel">
       <h1>Admin Panel</h1>
       <div className="admin-form">
+        {/* Form for adding/updating games */}
         <div className="form-group">
           <label>Title</label>
           <input 
@@ -205,6 +227,11 @@ const AdminPanel = () => {
             <p>Prize Pool: ${game.prizePool}</p>
             <p>Room ID: {game.roomId}</p>
             <p>Room Password: {game.roomPassword}</p>
+            
+            <button onClick={() => openParticipantsModal(game.id)} className="btn btn-primary">
+              Show Participants
+            </button>
+            
             <button onClick={() => handleEditGame(game)} className="btn btn-edit">
               Edit
             </button>
@@ -214,6 +241,38 @@ const AdminPanel = () => {
           </div>
         ))}
       </div>
+      
+      {/* Modal for showing participants */}
+      <Modal
+        isOpen={modalIsOpen}
+        onRequestClose={closeParticipantsModal}
+        contentLabel="Participants"
+        className="modal"
+        overlayClassName="overlay"
+      >
+        <h2>Participants</h2>
+        <table className="participants-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Username</th>
+              <th>Score</th>
+            </tr>
+          </thead>
+          <tbody>
+            {selectedParticipants.map((participant, index) => (
+              <tr key={index}>
+                <td>{index + 1}</td>
+                <td>{participant.username}</td>
+                <td>{participant.score}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <button onClick={closeParticipantsModal} className="btn btn-close">
+          Close
+        </button>
+      </Modal>
     </div>
   );
 };

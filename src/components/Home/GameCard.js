@@ -4,8 +4,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import { purchaseGame } from '../../redux/actions/gameActions';
 import { firestore } from '../../firebase';
 import { doc, onSnapshot, updateDoc, getDoc, arrayUnion } from 'firebase/firestore';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faHeart, faShoppingCart, faStar, faEye } from '@fortawesome/free-solid-svg-icons';
 import './GameCard.css';
 
 const GameCard = ({
@@ -24,6 +22,12 @@ const GameCard = ({
   const [gameCredentials, setGameCredentials] = useState({ roomId: '', roomPassword: '' });
   const [full, setFull] = useState(false);
   const [participants, setParticipants] = useState(0);
+  const [showForm, setShowForm] = useState(false);
+  const [participantData, setParticipantData] = useState({
+    username: '',
+    gameUid: '', // Added gameUid field
+    mapDownloaded: false
+  });
 
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
@@ -70,12 +74,13 @@ const GameCard = ({
     try {
       const userPurchasesRef = doc(firestore, 'users', user.uid);
       const userPurchasesDoc = await getDoc(userPurchasesRef);
-      
+
       if (userPurchasesDoc.exists()) {
         const userPurchasesData = userPurchasesDoc.data();
 
         if (userPurchasesData.purchasedGames && userPurchasesData.purchasedGames.includes(id)) {
           console.warn("Game already purchased");
+          setShowCredentials(true);
           return;
         }
 
@@ -101,7 +106,7 @@ const GameCard = ({
             });
 
             dispatch(purchaseGame(gameName));
-            setShowCredentials(true);
+            setShowForm(true);
           } else {
             setFull(true);
           }
@@ -114,16 +119,39 @@ const GameCard = ({
     }
   };
 
+  const handleFormSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      const gameRef = doc(firestore, 'games', id);
+
+      await updateDoc(gameRef, {
+        participantsData: arrayUnion({
+          ...participantData,
+          userId: user.uid // Add userId to participantData
+        })
+      });
+
+      setShowForm(false);
+      setShowCredentials(true);
+    } catch (error) {
+      console.error("Error submitting participant data: ", error);
+    }
+  };
+
   const purchaseButtonText = useMemo(() => {
     if (full) {
       return 'Full';
     }
-    return isPurchased ? 'View Credentials' : `Buy ${entryFee} USD`;
-  }, [full, isPurchased, entryFee]);
+    return isPurchased ? (showCredentials ? 'Hide Credentials' : 'Show Credentials') : `Buy ${entryFee} USD`;
+  }, [full, isPurchased, showCredentials, entryFee]);
 
-  const favoriteIcon = useMemo(() => (
-    isFavorite ? faHeart : faStar
-  ), [isFavorite]);
+  const purchaseButtonClass = useMemo(() => {
+    if (full) {
+      return 'purchase-button full';
+    }
+    return isPurchased ? (showCredentials ? 'purchase-button view-credentials' : 'purchase-button purchased') : 'purchase-button';
+  }, [full, isPurchased, showCredentials]);
 
   const handleButtonClick = () => {
     if (isPurchased) {
@@ -148,17 +176,47 @@ const GameCard = ({
         </div>
         <div className="game-actions">
           <button
-            className={`purchase-button ${isPurchased ? 'purchased' : ''}`}
+            className={purchaseButtonClass}
             onClick={handleButtonClick}
             disabled={full}
           >
-            <FontAwesomeIcon icon={isPurchased ? faEye : faShoppingCart} />
             {purchaseButtonText}
           </button>
-          <button className="favorite-button" onClick={() => onFavorite(gameName)}>
-            <FontAwesomeIcon icon={favoriteIcon} />
-          </button>
         </div>
+        {showForm && (
+          <form className="participant-form" onSubmit={handleFormSubmit}>
+            <div className="form-group">
+              <label>Username</label>
+              <input
+                type="text"
+                value={participantData.username}
+                onChange={(e) => setParticipantData({ ...participantData, username: e.target.value })}
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label>Game UID</label>
+              <input
+                type="text"
+                value={participantData.gameUid}
+                onChange={(e) => setParticipantData({ ...participantData, gameUid: e.target.value })}
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label>Map Downloaded?</label>
+              <select
+                value={participantData.mapDownloaded ? 'yes' : 'no'}
+                onChange={(e) => setParticipantData({ ...participantData, mapDownloaded: e.target.value === 'yes' })}
+                required
+              >
+                <option value="no">No</option>
+                <option value="yes">Yes</option>
+              </select>
+            </div>
+            <button type="submit" className="submit-button">Submit</button>
+          </form>
+        )}
         {showCredentials && (
           <div className="game-credentials">
             <h4>Game Credentials:</h4>
@@ -174,12 +232,12 @@ const GameCard = ({
 GameCard.propTypes = {
   id: PropTypes.string.isRequired,
   title: PropTypes.string.isRequired,
-  description: PropTypes.string.isRequired,
+  description: PropTypes.string,
   gameName: PropTypes.string.isRequired,
   entryFee: PropTypes.number.isRequired,
   prizeMoney: PropTypes.number.isRequired,
-  isFavorite: PropTypes.bool.isRequired,
-  onFavorite: PropTypes.func.isRequired,
+  isFavorite: PropTypes.bool,
+  onFavorite: PropTypes.func,
   isPurchased: PropTypes.bool.isRequired,
   imageUrl: PropTypes.string
 };
