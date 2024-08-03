@@ -32,7 +32,7 @@ const Navbar = () => {
       </div>
       <div className={`navbar-links ${isMenuOpen ? 'active' : ''}`}>
         <ul className="nav-links">
-          <li><Link to="/">Home</Link></li>
+          <li><Link to="/home">Home</Link></li>
           <li><Link to="/aboutus">About</Link></li>
           <li><Link to="/contactus">Contact</Link></li>
           {user ? (

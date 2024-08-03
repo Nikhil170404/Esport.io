@@ -84,45 +84,34 @@
 }
 
 .game-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1.5rem;
-  justify-content: center;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1rem;
 }
 
 .pagination-section {
-  display: flex;
-  justify-content: center;
-  margin-top: 2rem;
+  text-align: center;
+}
+
+.pagination {
+  display: inline-block;
+  margin-top: 1rem;
 }
 
 .pagination button {
-  margin: 0 5px;
   padding: 0.5rem 1rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  cursor: pointer;
-  background-color: #fff;
-  transition: background-color 0.3s ease, color 0.3s ease;
-}
-
-.pagination button.active,
-.pagination button:hover {
+  margin: 0 0.25rem;
+  border: none;
   background-color: #007bff;
   color: #fff;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
 }
 
-@media (max-width: 768px) {
-  .filters-section {
-    flex-direction: column;
-    align-items: stretch;
-  }
+.pagination button.active {
+  background-color: #0056b3;
+}
 
-  .filter-input,
-  .sort-select,
-  .clear-filters-btn {
-    width: 100%;
-    margin-bottom: 10px;
-    flex: unset;
-  }
+.pagination button:hover {
+  background-color: #0056b3;
 }

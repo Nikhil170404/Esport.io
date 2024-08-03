@@ -7,9 +7,9 @@ import {
   ADD_GAME_REQUEST,
   ADD_GAME_SUCCESS,
   ADD_GAME_FAILURE,
-  UPDATE_GAME_PARTICIPANTS_REQUEST,
-  UPDATE_GAME_PARTICIPANTS_SUCCESS,
-  UPDATE_GAME_PARTICIPANTS_FAILURE,
+  UPDATE_GAME_REQUEST,
+  UPDATE_GAME_SUCCESS,
+  UPDATE_GAME_FAILURE,
   DELETE_GAME_REQUEST,
   DELETE_GAME_SUCCESS,
   DELETE_GAME_FAILURE
@@ -35,17 +35,17 @@ const gameReducer = (state = initialState, action) => {
       return { ...state, isLoading: false, games: [...state.games, action.payload] };
     case ADD_GAME_FAILURE:
       return { ...state, isLoading: false, error: action.payload };
-    case UPDATE_GAME_PARTICIPANTS_REQUEST:
+    case UPDATE_GAME_REQUEST:
       return { ...state, isLoading: true, error: null };
-    case UPDATE_GAME_PARTICIPANTS_SUCCESS:
+    case UPDATE_GAME_SUCCESS:
       return {
         ...state,
         isLoading: false,
         games: state.games.map(game =>
-          game.id === action.payload.id ? { ...game, participants: action.payload.participants } : game
+          game.id === action.payload.gameId ? { ...game, ...action.payload.updateFields } : game
         ),
       };
-    case UPDATE_GAME_PARTICIPANTS_FAILURE:
+    case UPDATE_GAME_FAILURE:
       return { ...state, isLoading: false, error: action.payload };
     case DELETE_GAME_REQUEST:
       return { ...state, isLoading: true, error: null };

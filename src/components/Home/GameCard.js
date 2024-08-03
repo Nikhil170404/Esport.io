@@ -2,9 +2,8 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import { useDispatch, useSelector } from 'react-redux';
 import { purchaseGame } from '../../redux/actions/gameActions';
-
 import { firestore } from '../../firebase';
-import { doc, getDoc, updateDoc, arrayUnion } from 'firebase/firestore';
+import { doc, onSnapshot, updateDoc, getDoc, arrayUnion } from 'firebase/firestore';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHeart, faShoppingCart, faStar } from '@fortawesome/free-solid-svg-icons';
 import './GameCard.css';
@@ -14,7 +13,6 @@ const GameCard = ({
   title,
   description,
   gameName,
-  participants,
   entryFee,
   prizeMoney,
   isFavorite,
@@ -25,64 +23,68 @@ const GameCard = ({
   const [showCredentials, setShowCredentials] = useState(false);
   const [gameCredentials, setGameCredentials] = useState({ roomId: '', roomPassword: '' });
   const [full, setFull] = useState(false);
+  const [participants, setParticipants] = useState(0); // Add state for participants
 
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
 
-  const fetchGameCredentials = useCallback(async () => {
-    try {
-      const gameRef = doc(firestore, 'games', id);
-      const gameDoc = await getDoc(gameRef);
+  const fetchGameData = useCallback(() => {
+    const gameRef = doc(firestore, 'games', id);
 
-      if (gameDoc.exists()) {
-        const gameData = gameDoc.data();
-        setGameCredentials({
-          roomId: gameData.roomId,
-          roomPassword: gameData.roomPassword
-        });
-        setShowCredentials(true);
+    const unsubscribe = onSnapshot(gameRef, (docSnapshot) => {
+      const gameData = docSnapshot.data();
+      if (gameData) {
+        console.log(`Game data: ${JSON.stringify(gameData)}`);
+        setParticipants(gameData.participants);
+        setFull(gameData.participants <= 0);
+        if (gameData.roomId && gameData.roomPassword) {
+          setGameCredentials({
+            roomId: gameData.roomId,
+            roomPassword: gameData.roomPassword
+          });
+          if (isPurchased) setShowCredentials(true);
+        }
       } else {
         console.error("No such game!");
       }
-    } catch (error) {
-      console.error("Error fetching game credentials: ", error);
-    }
-  }, [id]);
+    });
+
+    return unsubscribe; // Clean up subscription on unmount
+  }, [id, isPurchased]);
 
   useEffect(() => {
-    if (isPurchased) {
-      fetchGameCredentials();
-    }
-  }, [isPurchased, fetchGameCredentials]);
+    const unsubscribe = fetchGameData();
+    return () => unsubscribe(); // Clean up subscription on unmount
+  }, [fetchGameData]);
 
   const handlePurchase = async () => {
     if (!user) {
       console.error("User is not logged in");
       return;
     }
-  
-    if (participants <= 0) {
-      setFull(true);
+
+    if (full) {
+      console.warn("Game is full");
       return;
     }
-  
+
     try {
       const gameRef = doc(firestore, 'games', id);
       const gameDoc = await getDoc(gameRef);
-  
+
       if (gameDoc.exists()) {
         const gameData = gameDoc.data();
-  
+
         if (gameData.participants > 0) {
           await updateDoc(gameRef, {
             participants: gameData.participants - 1
           });
-  
+
           const userPurchasesRef = doc(firestore, 'users', user.uid);
           await updateDoc(userPurchasesRef, {
-            purchasedGames: arrayUnion(gameName)
+            purchasedGames: arrayUnion(id)
           });
-  
+
           dispatch(purchaseGame(gameName));
           setShowCredentials(true);
         } else {
@@ -95,7 +97,6 @@ const GameCard = ({
       console.error("Error purchasing game: ", error);
     }
   };
-  
 
   const purchaseButtonText = useMemo(() => {
     if (full) {
@@ -111,7 +112,7 @@ const GameCard = ({
   return (
     <div className="game-card">
       <div className="game-card-header">
-        <img src={imageUrl} alt={title} className="game-image" />
+        <img src={imageUrl || 'default-image-url.png'} alt={title} className="game-image" />
         <h3 className="game-title">{title}</h3>
       </div>
       <p className="game-description">{description}</p>
@@ -149,13 +150,12 @@ GameCard.propTypes = {
   title: PropTypes.string.isRequired,
   description: PropTypes.string.isRequired,
   gameName: PropTypes.string.isRequired,
-  participants: PropTypes.number.isRequired,
   entryFee: PropTypes.number.isRequired,
   prizeMoney: PropTypes.number.isRequired,
   isFavorite: PropTypes.bool.isRequired,
   onFavorite: PropTypes.func.isRequired,
   isPurchased: PropTypes.bool.isRequired,
-  imageUrl: PropTypes.string // Optional
+  imageUrl: PropTypes.string
 };
 
 export default GameCard;

@@ -1,65 +1,88 @@
 .game-card {
-  border: 1px solid #ddd;
-  border-radius: 12px;
-  padding: 20px;
-  margin: 10px;
-  background-color: #fff;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  position: relative;
-  max-width: 300px; /* Set a max-width for consistent sizing */
-  box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  background-color: #fff;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  max-width: 300px; /* Limit the card width for better layout control */
+  margin: 0 auto; /* Center the card in its container */
 }
 
 .game-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+  transform: translateY(-8px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
 }
 
-.game-image {
+.game-card-header {
+  position: relative;
+}
+
+.game-card-image {
   width: 100%;
-  height: auto;
-  border-radius: 8px;
+  height: 200px; /* Adjusted height */
+  object-fit: cover;
+  display: block; /* Ensure the image is displayed correctly */
 }
 
-.game-info {
+.game-card-header h3 {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  color: #fff;
+  padding: 10px;
+  font-size: 1.2rem;
   text-align: center;
-  margin-top: 10px;
+  margin: 0;
+  box-sizing: border-box; /* Ensure padding is included in height */
 }
 
-.game-card h3 {
-  margin-top: 0;
-  font-size: 1.6rem;
+.game-card-content {
+  padding: 15px;
+}
+
+.game-card-title {
+  font-size: 1.2rem;
+  margin: 0;
+  font-weight: bold;
   color: #333;
 }
 
-.game-card p {
-  margin: 5px 0;
+.game-card-description {
+  font-size: 0.9rem;
   color: #666;
+  margin: 10px 0;
+}
+
+.game-info p {
+  font-size: 0.9rem;
+  color: #333;
+  margin: 5px 0;
 }
 
 .game-actions {
   display: flex;
   justify-content: space-between;
-  width: 100%;
-  margin-top: 15px;
-}
-
-.purchase-button, .favorite-button {
-  border: none;
-  border-radius: 8px;
-  padding: 10px 20px;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
+  align-items: center;
+  padding: 10px;
+  border-top: 1px solid #ddd;
 }
 
 .purchase-button {
   background-color: #007bff;
   color: #fff;
+  border: none;
+  border-radius: 5px;
+  padding: 10px 15px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  flex-grow: 1;
+  margin-right: 10px;
 }
 
 .purchase-button:hover {
@@ -67,18 +90,47 @@
 }
 
 .favorite-button {
-  background-color: #f8f9fa;
-  color: #333;
+  background-color: #f0f0f0;
+  border: none;
+  border-radius: 5px;
+  padding: 10px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
 }
 
 .favorite-button:hover {
-  background-color: #e2e6ea;
+  background-color: #e0e0e0;
 }
 
 .game-credentials {
-  margin-top: 15px;
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
+  padding: 15px;
   background-color: #f9f9f9;
+  border-top: 1px solid #ddd;
+}
+
+.game-credentials h4 {
+  margin: 0 0 10px 0;
+  font-size: 1rem;
+  color: #333;
+}
+
+.game-credentials p {
+  font-size: 0.9rem;
+  color: #555;
+  margin: 5px 0;
+}
+
+@media (max-width: 768px) {
+  .game-card {
+    max-width: 100%;
+    margin: 10px auto;
+  }
+
+  .game-card-image {
+    height: 150px;
+  }
+
+  .game-card-title {
+    font-size: 1rem;
+  }
 }

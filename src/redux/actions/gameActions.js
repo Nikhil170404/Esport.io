@@ -2,9 +2,9 @@ import {
   FETCH_GAMES_REQUEST, FETCH_GAMES_SUCCESS, FETCH_GAMES_FAILURE,
   ADD_GAME_SUCCESS, ADD_GAME_FAILURE,
   DELETE_GAME_SUCCESS, DELETE_GAME_FAILURE,
-  UPDATE_GAME_PARTICIPANTS_SUCCESS, UPDATE_GAME_PARTICIPANTS_FAILURE
+  UPDATE_GAME_SUCCESS, UPDATE_GAME_FAILURE
 } from './types';
-import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc, getDoc } from 'firebase/firestore';
+import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { firestore } from '../../firebase';
 
 export const fetchGames = () => async (dispatch) => {
@@ -19,7 +19,6 @@ export const fetchGames = () => async (dispatch) => {
   }
 };
 
-
 export const addGame = (game) => async (dispatch) => {
   try {
     const gamesCollection = collection(firestore, 'games');
@@ -30,30 +29,15 @@ export const addGame = (game) => async (dispatch) => {
   }
 };
 
-
-export const updateGameParticipants = (gameId) => async (dispatch) => {
+export const updateGame = (gameId, updateFields) => async (dispatch) => {
   try {
     const gameRef = doc(firestore, 'games', gameId);
-    const gameDoc = await getDoc(gameRef);
-    
-    if (gameDoc.exists()) {
-      const gameData = gameDoc.data();
-      if (gameData.participants > 0) {
-        await updateDoc(gameRef, {
-          participants: gameData.participants - 1
-        });
-        dispatch({ type: UPDATE_GAME_PARTICIPANTS_SUCCESS, payload: { gameId } });
-      } else {
-        dispatch({ type: UPDATE_GAME_PARTICIPANTS_FAILURE, payload: 'No participants left' });
-      }
-    } else {
-      dispatch({ type: UPDATE_GAME_PARTICIPANTS_FAILURE, payload: 'Game not found' });
-    }
+    await updateDoc(gameRef, updateFields);
+    dispatch({ type: UPDATE_GAME_SUCCESS, payload: { gameId, ...updateFields } });
   } catch (error) {
-    dispatch({ type: UPDATE_GAME_PARTICIPANTS_FAILURE, payload: error.message });
+    dispatch({ type: UPDATE_GAME_FAILURE, payload: error.message });
   }
 };
-
 
 export const deleteGame = (id) => async (dispatch) => {
   try {
@@ -65,7 +49,6 @@ export const deleteGame = (id) => async (dispatch) => {
   }
 };
 
-
 export const purchaseGame = (gameId) => async (dispatch) => {
   try {
     // Your purchase logic here
@@ -74,4 +57,3 @@ export const purchaseGame = (gameId) => async (dispatch) => {
     dispatch({ type: 'PURCHASE_GAME_FAILURE', payload: error.message });
   }
 };
-
