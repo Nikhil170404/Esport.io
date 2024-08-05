@@ -1,6 +1,4 @@
-// src/redux/actions/walletAction.js
-
-import { doc, getDoc, updateDoc, increment } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc, increment } from 'firebase/firestore';
 import { firestore } from '../../firebase'; // Ensure this path is correct
 
 // Action types
@@ -12,6 +10,17 @@ export const UPDATE_WALLET_SUCCESS = 'UPDATE_WALLET_SUCCESS';
 export const UPDATE_WALLET_FAILURE = 'UPDATE_WALLET_FAILURE';
 
 // Action creators
+
+// Initialize wallet for a new user
+const initializeWallet = async (userId) => {
+  try {
+    const walletRef = doc(firestore, 'wallets', userId);
+    await setDoc(walletRef, { balance: 0 });
+    console.log('Wallet created for user:', userId);
+  } catch (error) {
+    console.error('Error initializing wallet:', error);
+  }
+};
 
 // Fetch wallet
 export const fetchWallet = () => async (dispatch, getState) => {
@@ -29,10 +38,12 @@ export const fetchWallet = () => async (dispatch, getState) => {
         payload: walletDoc.data()
       });
     } else {
-      console.error('No wallet found for this user');
+      // Wallet does not exist, create one
+      console.error('No wallet found for this user. Creating a new wallet.');
+      await initializeWallet(user.uid); // Initialize wallet
       dispatch({
         type: FETCH_WALLET_FAILURE,
-        payload: 'No wallet found for this user'
+        payload: 'No wallet found for this user. A new wallet has been created.'
       });
     }
   } catch (error) {

@@ -70,12 +70,18 @@ const TournamentCard = ({
   }, [dispatch, user]);
 
   const handlePayment = async () => {
-    if (balance < entryFee) {
-      console.warn("Insufficient funds. Please add funds to your wallet.");
+    if (user && balance !== undefined) {
+      if (balance < entryFee) {
+        console.warn("Insufficient funds. Please add funds to your wallet.");
+        setShowPaymentPrompt(true);
+        return false;
+      }
+      return true;
+    } else {
+      console.error("Error fetching wallet or user data.");
       setShowPaymentPrompt(true);
       return false;
     }
-    return true;
   };
 
   const handleJoin = async () => {
@@ -272,13 +278,6 @@ TournamentCard.propTypes = {
   onFavorite: PropTypes.func,
   isJoined: PropTypes.bool,
   imageUrl: PropTypes.string
-};
-
-TournamentCard.defaultProps = {
-  isFavorite: false,
-  onFavorite: () => {},
-  isJoined: false,
-  imageUrl: ''
 };
 
 export default TournamentCard;
