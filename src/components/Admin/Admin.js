@@ -1,26 +1,32 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchGames, addGame, updateGame, deleteGame } from '../../redux/actions/gameActions';
-import './Admin.css'; // Import your CSS file for styling
 import { doc, getDoc } from 'firebase/firestore';
-import { firestore } from '../../firebase';
-import Modal from 'react-modal'; // Install react-modal if not already done
+import { firestore, storage } from '../../firebase';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import Modal from 'react-modal';
+import './Admin.css';
+
+Modal.setAppElement('#root');
 
 const AdminPanel = () => {
   const dispatch = useDispatch();
   const { games, isLoading, error } = useSelector((state) => state.game);
 
-  const [title, setTitle] = useState('');
-  const [gameName, setGameName] = useState('');
-  const [description, setDescription] = useState('');
-  const [entryFee, setEntryFee] = useState(0);
-  const [participants, setParticipants] = useState(0);
-  const [prizePool, setPrizePool] = useState(0);
-  const [image, setImage] = useState(null);
-  const [isPaid, setIsPaid] = useState(true);
-  const [roomId, setRoomId] = useState('');
-  const [roomPassword, setRoomPassword] = useState('');
-  const [currentGameId, setCurrentGameId] = useState(null);
+  const [formData, setFormData] = useState({
+    title: '',
+    gameName: '',
+    description: '',
+    entryFee: 0,
+    participants: 0,
+    prizePool: 0,
+    image: null,
+    isPaid: true,
+    roomId: '',
+    roomPassword: '',
+    currentGameId: null,
+  });
+
   const [participantsData, setParticipantsData] = useState({});
   const [selectedParticipants, setSelectedParticipants] = useState([]);
   const [modalIsOpen, setModalIsOpen] = useState(false);
@@ -46,61 +52,64 @@ const AdminPanel = () => {
     fetchParticipantsData();
   }, [games]);
 
-  useEffect(() => {
-    return () => {
-      if (image) {
-        URL.revokeObjectURL(URL.createObjectURL(image));
-      }
-    };
-  }, [image]);
+  const handleChange = (e) => {
+    const { name, value, files } = e.target;
+    setFormData({
+      ...formData,
+      [name]: files ? files[0] : value,
+    });
+  };
 
-  const handleAddGame = () => {
+  const handleSubmit = async () => {
+    let imageUrl = '';
+
+    if (formData.image) {
+      const imageRef = ref(storage, `game-images/${formData.image.name}`);
+      await uploadBytes(imageRef, formData.image);
+      imageUrl = await getDownloadURL(imageRef);
+    }
+
     const newGame = {
-      title,
-      gameName,
-      description,
-      entryFee: isPaid ? entryFee : 0,
-      participants,
-      prizePool,
-      imageUrl: image ? URL.createObjectURL(image) : '',
-      roomId,
-      roomPassword
+      title: formData.title,
+      gameName: formData.gameName,
+      description: formData.description,
+      entryFee: formData.isPaid ? formData.entryFee : 0,
+      participants: formData.participants,
+      prizePool: formData.prizePool,
+      imageUrl: imageUrl,
+      isPaid: formData.isPaid,
+      roomId: formData.roomId,
+      roomPassword: formData.roomPassword,
+      currentGameId: formData.currentGameId,
     };
-    dispatch(addGame(newGame));
-  };
 
-  const handleDeleteGame = (id) => {
-    dispatch(deleteGame(id));
-  };
+    if (formData.currentGameId) {
+      await dispatch(updateGame(newGame));
+    } else {
+      await dispatch(addGame(newGame));
+    }
 
-  const handleUpdateGame = () => {
-    const updatedGame = {
-      id: currentGameId,
-      title,
-      gameName,
-      description,
-      entryFee: isPaid ? entryFee : 0,
-      participants,
-      prizePool,
-      imageUrl: image ? URL.createObjectURL(image) : '',
-      roomId,
-      roomPassword
-    };
-    dispatch(updateGame(updatedGame));
+    setFormData({
+      title: '',
+      gameName: '',
+      description: '',
+      entryFee: 0,
+      participants: 0,
+      prizePool: 0,
+      image: null,
+      isPaid: true,
+      roomId: '',
+      roomPassword: '',
+      currentGameId: null,
+    });
   };
 
   const handleEditGame = (game) => {
-    setTitle(game.title);
-    setGameName(game.gameName);
-    setDescription(game.description);
-    setEntryFee(game.entryFee);
-    setParticipants(game.participants);
-    setPrizePool(game.prizePool);
-    setImage(game.imageUrl ? new Blob([game.imageUrl]) : null);
-    setIsPaid(game.entryFee > 0);
-    setRoomId(game.roomId || '');
-    setRoomPassword(game.roomPassword || '');
-    setCurrentGameId(game.id);
+    setFormData({
+      ...game,
+      isPaid: game.entryFee > 0,
+      image: null,
+    });
   };
 
   const openParticipantsModal = (gameId) => {
@@ -116,105 +125,38 @@ const AdminPanel = () => {
     <div className="admin-panel">
       <h1>Admin Panel</h1>
       <div className="admin-form">
-        {/* Form for adding/updating games */}
-        <div className="form-group">
-          <label>Title</label>
-          <input 
-            type="text" 
-            placeholder="Title" 
-            value={title} 
-            onChange={(e) => setTitle(e.target.value)} 
-          />
-        </div>
-        <div className="form-group">
-          <label>Game Name</label>
-          <input 
-            type="text" 
-            placeholder="Game Name" 
-            value={gameName} 
-            onChange={(e) => setGameName(e.target.value)} 
-          />
-        </div>
-        <div className="form-group">
-          <label>Description</label>
-          <textarea 
-            placeholder="Description" 
-            value={description} 
-            onChange={(e) => setDescription(e.target.value)}
-          />
-        </div>
-        <div className="form-group">
-          <label>Entry Fee</label>
-          <input 
-            type="number" 
-            placeholder="Entry Fee" 
-            value={entryFee} 
-            onChange={(e) => setEntryFee(Number(e.target.value))}
-            disabled={!isPaid}
-          />
-        </div>
-        <div className="form-group">
-          <label>Participants</label>
-          <input 
-            type="number" 
-            placeholder="Participants" 
-            value={participants} 
-            onChange={(e) => setParticipants(Number(e.target.value))}
-          />
-        </div>
-        <div className="form-group">
-          <label>Prize Pool</label>
-          <input 
-            type="number" 
-            placeholder="Prize Pool" 
-            value={prizePool} 
-            onChange={(e) => setPrizePool(Number(e.target.value))}
-          />
-        </div>
+        {['title', 'gameName', 'description', 'entryFee', 'participants', 'prizePool', 'roomId', 'roomPassword'].map((field, index) => (
+          <div className="form-group" key={index}>
+            <label>{field.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}</label>
+            <input 
+              type={field.includes('Fee') || field.includes('Pool') || field.includes('Participants') ? 'number' : 'text'}
+              name={field}
+              placeholder={field.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
+              value={formData[field]} 
+              onChange={handleChange} 
+              disabled={!formData.isPaid && field === 'entryFee'}
+            />
+          </div>
+        ))}
         <div className="form-group">
           <label>Game Image</label>
-          <input 
-            type="file" 
-            onChange={(e) => setImage(e.target.files[0])}
-          />
+          <input type="file" name="image" onChange={handleChange} />
         </div>
         <div className="form-group">
           <label>Paid/Free</label>
-          <select 
-            value={isPaid.toString()} 
-            onChange={(e) => setIsPaid(e.target.value === 'true')} 
-          >
+          <select name="isPaid" value={formData.isPaid.toString()} onChange={(e) => setFormData({ ...formData, isPaid: e.target.value === 'true' })}>
             <option value="true">Paid</option>
             <option value="false">Free</option>
           </select>
         </div>
-        <div className="form-group">
-          <label>Room ID</label>
-          <input 
-            type="text" 
-            placeholder="Room ID" 
-            value={roomId} 
-            onChange={(e) => setRoomId(e.target.value)}
-          />
-        </div>
-        <div className="form-group">
-          <label>Room Password</label>
-          <input 
-            type="text" 
-            placeholder="Room Password" 
-            value={roomPassword} 
-            onChange={(e) => setRoomPassword(e.target.value)}
-          />
-        </div>
-        <button 
-          onClick={currentGameId ? handleUpdateGame : handleAddGame} 
-          className="btn btn-primary"
-        >
-          {currentGameId ? 'Update Game' : 'Add Game'}
+        <button onClick={handleSubmit} className="btn btn-primary">
+          {formData.currentGameId ? 'Update Game' : 'Add Game'}
         </button>
       </div>
+
       {isLoading && <p>Loading...</p>}
       {error && <p className="admin-error">{error}</p>}
+
       <div className="game-list">
         {games.map(game => (
           <div key={game.id} className="game-card">
@@ -235,14 +177,13 @@ const AdminPanel = () => {
             <button onClick={() => handleEditGame(game)} className="btn btn-edit">
               Edit
             </button>
-            <button onClick={() => handleDeleteGame(game.id)} className="btn btn-delete">
+            <button onClick={() => dispatch(deleteGame(game.id))} className="btn btn-delete">
               Delete
             </button>
           </div>
         ))}
       </div>
       
-      {/* Modal for showing participants */}
       <Modal
         isOpen={modalIsOpen}
         onRequestClose={closeParticipantsModal}

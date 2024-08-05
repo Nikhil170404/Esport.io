@@ -1,13 +1,13 @@
 /* General Card Styles */
 .game-card {
   border: 1px solid #e0e0e0;
-  border-radius: 10px;
+  border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   background: #ffffff;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   margin: 20px auto;
-  max-width: 360px; /* Set a max width for the card */
+  max-width: 360px;
 }
 
 .game-card:hover {
@@ -22,8 +22,8 @@
 
 .game-card-image {
   width: 100%;
-  height: auto;
-  display: block;
+  height: 200px;
+  object-fit: cover;
 }
 
 .game-card-title {
@@ -33,151 +33,107 @@
   width: 100%;
   background: rgba(0, 0, 0, 0.7);
   color: #ffffff;
-  padding: 14px;
-  font-size: 1.3rem;
+  padding: 12px;
+  font-size: 1.2rem;
   text-align: center;
-  margin: 0;
-  box-shadow: 0 -4px 8px rgba(0, 0, 0, 0.3);
 }
 
 /* Content Styles */
 .game-card-content {
-  padding: 20px;
+  padding: 16px;
 }
 
 .game-card-description {
-  font-size: 1rem;
-  color: #666666;
-  margin: 14px 0;
+  font-size: 0.9rem;
+  color: #555;
+  margin-bottom: 12px;
 }
 
-.game-info p {
-  font-size: 1rem;
-  color: #333333;
-  margin: 8px 0;
+.game-info {
+  font-size: 0.85rem;
+  color: #333;
+  margin-bottom: 16px;
 }
 
-/* Button Styles */
 .game-actions {
   display: flex;
   justify-content: center;
-  margin-top: 16px;
 }
 
 .purchase-button {
-  padding: 12px 24px;
-  border: none;
-  border-radius: 8px;
-  color: #ffffff;
+  padding: 10px 20px;
+  font-size: 0.9rem;
+  color: #fff;
   background: #007bff;
+  border: none;
+  border-radius: 4px;
   cursor: pointer;
-  font-size: 1rem;
-  transition: background 0.3s ease, transform 0.2s ease;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: background 0.3s ease;
 }
 
-.purchase-button:disabled {
-  background: #e0e0e0;
-  cursor: not-allowed;
+.purchase-button:hover {
+  background: #0056b3;
 }
 
 .purchase-button.full {
-  background: #dc3545;
+  background: #ccc;
+  cursor: not-allowed;
 }
 
 .purchase-button.purchased {
   background: #28a745;
 }
 
-.purchase-button.view-credentials {
-  background: #ffc107;
-}
-
-.purchase-button:hover:not(:disabled) {
-  background: #0056b3;
-  transform: scale(1.05);
+.purchase-button.purchased:hover {
+  background: #218838;
 }
 
 /* Form Styles */
 .participant-form {
-  margin-top: 20px;
+  margin-top: 16px;
 }
 
-.participant-form .form-group {
-  margin-bottom: 14px;
+.form-group {
+  margin-bottom: 12px;
 }
 
-.participant-form label {
+.form-group label {
   display: block;
-  margin-bottom: 8px;
-  font-weight: 600;
-  color: #333333;
+  font-weight: bold;
+  margin-bottom: 4px;
 }
 
-.participant-form input,
-.participant-form select {
+.form-group input,
+.form-group select {
   width: 100%;
-  padding: 12px;
-  border-radius: 8px;
-  border: 1px solid #e0e0e0;
-  font-size: 1rem;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
 }
 
-/* Submit Button Styles */
 .submit-button {
-  padding: 12px 24px;
-  border: none;
-  border-radius: 8px;
-  color: #ffffff;
+  padding: 10px 20px;
+  font-size: 0.9rem;
+  color: #fff;
   background: #007bff;
+  border: none;
+  border-radius: 4px;
   cursor: pointer;
-  font-size: 1rem;
-  margin-top: 14px;
-  transition: background 0.3s ease, transform 0.2s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: background 0.3s ease;
 }
 
 .submit-button:hover {
   background: #0056b3;
-  transform: scale(1.05);
 }
 
 /* Credentials Styles */
 .game-credentials {
-  margin-top: 20px;
-  padding: 14px;
-  background: #f8f9fa;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-top: 16px;
+  font-size: 0.85rem;
+  color: #333;
 }
 
-/* Responsive Design */
-@media (min-width: 768px) {
-  .game-card {
-    max-width: 300px;
-  }
-
-  .game-card-content {
-    padding: 18px;
-  }
-
-  .purchase-button {
-    font-size: 1rem;
-  }
-}
-
-@media (min-width: 992px) {
-  .game-card {
-    max-width: 350px;
-  }
-}
-
-@media (min-width: 1200px) {
-  .game-card {
-    max-width: 400px;
-  }
+.game-credentials h4 {
+  font-size: 1rem;
+  margin-bottom: 8px;
 }

@@ -91,22 +91,7 @@ const GameCard = ({
           const gameData = gameDoc.data();
 
           if (gameData.participants > 0) {
-            await updateDoc(gameRef, {
-              participants: gameData.participants - 1
-            });
-
-            await updateDoc(userPurchasesRef, {
-              purchasedGames: arrayUnion(id),
-              purchaseHistory: arrayUnion({
-                gameId: id,
-                gameName,
-                entryFee,
-                purchaseDate: new Date()
-              })
-            });
-
-            dispatch(purchaseGame(gameName));
-            setShowForm(true);
+            setShowForm(true); // Show form first
           } else {
             setFull(true);
           }
@@ -126,14 +111,27 @@ const GameCard = ({
       const gameRef = doc(firestore, 'games', id);
 
       await updateDoc(gameRef, {
+        participants: participants - 1, // Decrease participants count here
         participantsData: arrayUnion({
           ...participantData,
           userId: user.uid // Add userId to participantData
         })
       });
 
+      const userPurchasesRef = doc(firestore, 'users', user.uid);
+      await updateDoc(userPurchasesRef, {
+        purchasedGames: arrayUnion(id),
+        purchaseHistory: arrayUnion({
+          gameId: id,
+          gameName,
+          entryFee,
+          purchaseDate: new Date()
+        })
+      });
+
+      dispatch(purchaseGame(gameName));
       setShowForm(false);
-      setShowCredentials(true);
+      setShowCredentials(true); // Show credentials after purchase
     } catch (error) {
       console.error("Error submitting participant data: ", error);
     }
@@ -150,8 +148,8 @@ const GameCard = ({
     if (full) {
       return 'purchase-button full';
     }
-    return isPurchased ? (showCredentials ? 'purchase-button view-credentials' : 'purchase-button purchased') : 'purchase-button';
-  }, [full, isPurchased, showCredentials]);
+    return isPurchased ? 'purchase-button purchased' : 'purchase-button';
+  }, [full, isPurchased]);
 
   const handleButtonClick = () => {
     if (isPurchased) {
@@ -178,7 +176,7 @@ const GameCard = ({
           <button
             className={purchaseButtonClass}
             onClick={handleButtonClick}
-            disabled={full}
+            disabled={full || (isPurchased && showCredentials)} // Disable if full or already purchased and credentials shown
           >
             {purchaseButtonText}
           </button>
@@ -236,8 +234,6 @@ GameCard.propTypes = {
   gameName: PropTypes.string.isRequired,
   entryFee: PropTypes.number.isRequired,
   prizeMoney: PropTypes.number.isRequired,
-  isFavorite: PropTypes.bool,
-  onFavorite: PropTypes.func,
   isPurchased: PropTypes.bool.isRequired,
   imageUrl: PropTypes.string
 };

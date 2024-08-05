@@ -6,25 +6,28 @@
   justify-content: space-between;
   align-items: center;
   color: #fff;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   position: relative;
+  transition: background-color 0.3s ease;
 }
 
 .navbar-container {
   display: flex;
   align-items: center;
   width: 100%;
+  justify-content: space-between;
 }
 
 .navbar-brand a {
   font-size: 1.75rem;
   color: #fff;
   text-decoration: none;
+  font-weight: bold;
   transition: color 0.3s ease;
 }
 
 .navbar-brand a:hover {
-  color: #ccc;
+  color: #ddd;
 }
 
 .navbar-toggle {
@@ -32,6 +35,8 @@
   flex-direction: column;
   cursor: pointer;
   padding: 0.5rem;
+  position: relative;
+  right: 1rem;
 }
 
 .hamburger {
@@ -40,7 +45,7 @@
   width: 30px;
   margin: 5px 0;
   border-radius: 5px;
-  transition: background-color 0.3s ease, transform 0.3s ease;
+  transition: transform 0.3s ease, opacity 0.3s ease;
 }
 
 .hamburger.open:nth-child(1) {
@@ -60,6 +65,18 @@
   align-items: center;
   width: 100%;
   justify-content: space-between;
+  transition: opacity 0.3s ease, max-height 0.3s ease;
+}
+
+.navbar-links.active {
+  opacity: 1;
+  max-height: 300px; /* Adjust based on your content */
+}
+
+.navbar-links.inactive {
+  opacity: 0;
+  max-height: 0;
+  overflow: hidden;
 }
 
 .nav-links {
@@ -80,6 +97,7 @@
   padding: 0.5rem 1rem;
   border-radius: 4px;
   transition: background-color 0.3s ease, color 0.3s ease;
+  font-weight: 500;
 }
 
 .nav-links a:hover {
@@ -96,6 +114,7 @@
   cursor: pointer;
   font-size: 1rem;
   transition: background-color 0.3s ease;
+  font-weight: bold;
 }
 
 .logout-btn:hover {
@@ -108,8 +127,22 @@
     flex-direction: column;
   }
 
+  .navbar-container {
+    width: 100%;
+    position: relative;
+  }
+
   .navbar-toggle {
     display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .navbar-toggle .hamburger {
+    background-color: #fff;
+    border-radius: 5px;
+    transition: all 0.3s ease;
   }
 
   .navbar-links {
@@ -117,6 +150,13 @@
     flex-direction: column;
     width: 100%;
     background-color: #333;
+    position: absolute;
+    top: 60px; /* Adjust based on the height of the navbar */
+    left: 0;
+    right: 0;
+    z-index: 10;
+    overflow-y: auto;
+    padding: 1rem;
   }
 
   .navbar-links.active {
@@ -129,15 +169,36 @@
     width: 100%;
   }
 
+  .nav-links li {
+    width: 100%;
+  }
+
   .nav-links a {
     text-align: center;
     width: 100%;
     padding: 1rem;
+    border-bottom: 1px solid #444; /* Adds a separator line */
+  }
+
+  .nav-links a:last-child {
+    border-bottom: none; /* Remove the border from the last item */
   }
 
   .logout-btn {
     width: 100%;
     text-align: center;
     margin-top: 1rem;
+    border: none;
+    background-color: #e74c3c;
+    color: white;
+    padding: 0.5rem;
+    font-size: 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+
+  .logout-btn:hover {
+    background-color: #c0392b;
   }
 }

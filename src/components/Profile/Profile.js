@@ -16,7 +16,8 @@ const Profile = () => {
     email: user?.email || '',
     age: user?.age || '',
     bio: user?.bio || '',
-    profileImage: user?.profileImage || ''
+    profileImage: user?.profileImage || '',
+    gameUid: user?.gameUid || ''
   });
   const [file, setFile] = useState(null);
 
@@ -29,7 +30,8 @@ const Profile = () => {
           email: data.email,
           age: data.age,
           bio: data.bio,
-          profileImage: data.profileImage
+          profileImage: data.profileImage,
+          gameUid: data.gameUid
         });
       });
 
@@ -107,21 +109,31 @@ const Profile = () => {
             value={formData.bio}
             onChange={handleChange}
           />
+          <label>Game UID:</label>
+          <input
+            type="text"
+            name="gameUid"
+            value={formData.gameUid}
+            onChange={handleChange}
+          />
           <label>Profile Image:</label>
           <input
             type="file"
             accept="image/*"
             onChange={handleFileChange}
           />
-          <button onClick={handleSave}>Save Changes</button>
-          <button onClick={() => setIsEditing(false)}>Cancel</button>
+          <div className="profile-edit-actions">
+            <button onClick={handleSave}>Save Changes</button>
+            <button onClick={() => setIsEditing(false)}>Cancel</button>
+          </div>
         </div>
       ) : (
         <>
           <p><strong>Email:</strong> {formData.email}</p>
           <p><strong>Age:</strong> {formData.age}</p>
           <p><strong>Bio:</strong> {formData.bio}</p>
-          <button onClick={() => setIsEditing(true)}>Edit Profile</button>
+          <p><strong>Game UID:</strong> {formData.gameUid}</p>
+          <button className="edit-button" onClick={() => setIsEditing(true)}>Edit Profile</button>
         </>
       )}
     </div>

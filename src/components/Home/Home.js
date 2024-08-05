@@ -6,17 +6,34 @@ import GameCard from './GameCard';
 import Loader from '../Loader/Loader';
 import './Home.css';
 import { FaSearch, FaSort, FaTrashAlt } from 'react-icons/fa';
+import { collection, onSnapshot } from 'firebase/firestore';
+import { firestore } from '../../firebase'; // Adjust the path according to your setup
 
 const Home = () => {
   const dispatch = useDispatch();
-  const { games, isLoading } = useSelector((state) => state.game);
+  const { isLoading } = useSelector((state) => state.game);
   const { purchasedGames } = useSelector((state) => state.auth);
 
   const [sortOption, setSortOption] = useState('title');
   const [filterText, setFilterText] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [favorites, setFavorites] = useState([]);
+  const [realTimeGames, setRealTimeGames] = useState([]);
   const gamesPerPage = 10;
+
+  useEffect(() => {
+    const gamesCollection = collection(firestore, 'games');
+    const unsubscribe = onSnapshot(gamesCollection, (snapshot) => {
+      const gamesData = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setRealTimeGames(gamesData);
+    });
+
+    // Cleanup listener on unmount
+    return () => unsubscribe();
+  }, []);
 
   useEffect(() => {
     dispatch(fetchGames());
@@ -65,7 +82,7 @@ const Home = () => {
     setSortOption('title');
   };
 
-  const sortedGames = sortGames(games, sortOption);
+  const sortedGames = sortGames(realTimeGames, sortOption);
   const filteredGames = filterGames(sortedGames, filterText);
 
   const indexOfLastGame = currentPage * gamesPerPage;
