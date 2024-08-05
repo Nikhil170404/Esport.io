@@ -1,8 +1,8 @@
 import { combineReducers } from 'redux';
 import authReducer from './authReducer';
-import gameReducer from './gameReducer';
+import tournamentReducer from './tournamentReducer';
 
 export default combineReducers({
   auth: authReducer,
-  game: gameReducer,
+  tournament: tournamentReducer,
 });

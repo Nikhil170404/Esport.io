@@ -1,58 +1,57 @@
 import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { fetchGames } from '../../redux/actions/gameActions';
-import { purchaseGame } from '../../redux/actions/authAction';
-import GameCard from './GameCard';
+import { fetchTournaments } from '../../redux/actions/tournamentActions'; 
+import { purchaseTournament } from '../../redux/actions/authAction'; 
+import TournamentCard from './TournamentCard';
 import Loader from '../Loader/Loader';
 import './Home.css';
 import { FaSearch, FaSort, FaTrashAlt } from 'react-icons/fa';
 import { collection, onSnapshot } from 'firebase/firestore';
-import { firestore } from '../../firebase'; // Adjust the path according to your setup
+import { firestore } from '../../firebase'; 
 
 const Home = () => {
   const dispatch = useDispatch();
-  const { isLoading } = useSelector((state) => state.game);
-  const { purchasedGames } = useSelector((state) => state.auth);
+  const { isLoading } = useSelector((state) => state.tournament); 
+  const { purchasedTournaments = [] } = useSelector((state) => state.auth) || {}; 
 
   const [sortOption, setSortOption] = useState('title');
   const [filterText, setFilterText] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [favorites, setFavorites] = useState([]);
-  const [realTimeGames, setRealTimeGames] = useState([]);
-  const gamesPerPage = 10;
+  const [realTimeTournaments, setRealTimeTournaments] = useState([]);
+  const tournamentsPerPage = 10;
 
   useEffect(() => {
-    const gamesCollection = collection(firestore, 'games');
-    const unsubscribe = onSnapshot(gamesCollection, (snapshot) => {
-      const gamesData = snapshot.docs.map(doc => ({
+    const tournamentsCollection = collection(firestore, 'tournaments');
+    const unsubscribe = onSnapshot(tournamentsCollection, (snapshot) => {
+      const tournamentsData = snapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data()
       }));
-      setRealTimeGames(gamesData);
+      setRealTimeTournaments(tournamentsData);
     });
 
-    // Cleanup listener on unmount
     return () => unsubscribe();
   }, []);
 
   useEffect(() => {
-    dispatch(fetchGames());
+    dispatch(fetchTournaments());
   }, [dispatch]);
 
-  const handlePurchase = (gameName) => {
-    dispatch(purchaseGame(gameName));
+  const handlePurchase = (tournamentName) => {
+    dispatch(purchaseTournament(tournamentName)); 
   };
 
-  const handleFavorite = (gameName) => {
+  const handleFavorite = (tournamentName) => {
     setFavorites((prevFavorites) =>
-      prevFavorites.includes(gameName)
-        ? prevFavorites.filter((fav) => fav !== gameName)
-        : [...prevFavorites, gameName]
+      prevFavorites.includes(tournamentName)
+        ? prevFavorites.filter((fav) => fav !== tournamentName)
+        : [...prevFavorites, tournamentName]
     );
   };
 
-  const sortGames = (games, option) => {
-    return games.slice().sort((a, b) => {
+  const sortTournaments = (tournaments, option) => {
+    return tournaments.slice().sort((a, b) => {
       switch (option) {
         case 'title':
           return (a.title || '').localeCompare(b.title || '');
@@ -68,12 +67,12 @@ const Home = () => {
     });
   };
 
-  const filterGames = (games, text) => {
+  const filterTournaments = (tournaments, text) => {
     const lowercasedText = text.toLowerCase();
-    return games.filter(
-      (game) =>
-        (game.title && game.title.toLowerCase().includes(lowercasedText)) ||
-        (game.description && game.description.toLowerCase().includes(lowercasedText))
+    return tournaments.filter(
+      (tournament) =>
+        (tournament.title && tournament.title.toLowerCase().includes(lowercasedText)) ||
+        (tournament.description && tournament.description.toLowerCase().includes(lowercasedText))
     );
   };
 
@@ -82,14 +81,14 @@ const Home = () => {
     setSortOption('title');
   };
 
-  const sortedGames = sortGames(realTimeGames, sortOption);
-  const filteredGames = filterGames(sortedGames, filterText);
+  const sortedTournaments = sortTournaments(realTimeTournaments || [], sortOption);
+  const filteredTournaments = filterTournaments(sortedTournaments || [], filterText);
 
-  const indexOfLastGame = currentPage * gamesPerPage;
-  const indexOfFirstGame = indexOfLastGame - gamesPerPage;
-  const currentGames = filteredGames.slice(indexOfFirstGame, indexOfLastGame);
-
-  const totalPages = Math.ceil(filteredGames.length / gamesPerPage);
+  // Pagination logic
+  const indexOfLastTournament = currentPage * tournamentsPerPage;
+  const indexOfFirstTournament = indexOfLastTournament - tournamentsPerPage;
+  const currentTournaments = filteredTournaments.slice(indexOfFirstTournament, indexOfLastTournament);
+  const totalPages = Math.ceil(filteredTournaments.length / tournamentsPerPage);
 
   const handlePageChange = (pageNumber) => {
     setCurrentPage(pageNumber);
@@ -110,7 +109,7 @@ const Home = () => {
               <FaSearch className="icon" />
               <input
                 type="text"
-                placeholder="Search games..."
+                placeholder="Search tournaments..."
                 value={filterText}
                 onChange={(e) => setFilterText(e.target.value)}
                 className="filter-input"
@@ -134,51 +133,51 @@ const Home = () => {
               Clear Filters
             </button>
           </section>
-          <section className="featured-games">
-            <h2>Featured Games:</h2>
-            <div className="game-list">
-              {sortedGames.slice(0, 3).map((game) => (
-                <GameCard
-                  key={game.id}
-                  id={game.id}
-                  title={game.title}
-                  description={game.description}
-                  gameName={game.gameName}
-                  participants={game.participants}
-                  entryFee={parseFloat(game.entryFee) || 0}
-                  prizeMoney={parseFloat(game.prizeMoney) || 0}
+          <section className="featured-tournaments">
+            <h2>Featured Tournaments:</h2>
+            <div className="tournament-list">
+              {sortedTournaments.slice(0, 3).map((tournament) => (
+                <TournamentCard
+                  key={tournament.id}
+                  id={tournament.id}
+                  title={tournament.title}
+                  description={tournament.description}
+                  tournamentName={tournament.tournamentName}
+                  participants={tournament.participants}
+                  entryFee={parseFloat(tournament.entryFee) || 0}
+                  prizeMoney={parseFloat(tournament.prizeMoney) || 0}
                   onPurchase={handlePurchase}
                   onFavorite={handleFavorite}
-                  isFavorite={favorites.includes(game.gameName)}
-                  isPurchased={purchasedGames.includes(game.gameName)}
-                  imageUrl={game.imageUrl}
+                  isFavorite={favorites.includes(tournament.tournamentName || '')}
+                  isPurchased={purchasedTournaments.includes(tournament.tournamentName || '')}
+                  imageUrl={tournament.imageUrl}
                 />
               ))}
             </div>
           </section>
-          <section className="all-games">
-            <h2>All Games:</h2>
-            <div className="game-list">
-              {currentGames.length ? (
-                currentGames.map((game) => (
-                  <GameCard
-                    key={game.id}
-                    id={game.id}
-                    title={game.title}
-                    description={game.description}
-                    gameName={game.gameName}
-                    participants={game.participants}
-                    entryFee={parseFloat(game.entryFee) || 0}
-                    prizeMoney={parseFloat(game.prizeMoney) || 0}
+          <section className="all-tournaments">
+            <h2>All Tournaments:</h2>
+            <div className="tournament-list">
+              {currentTournaments.length ? (
+                currentTournaments.map((tournament) => (
+                  <TournamentCard
+                    key={tournament.id}
+                    id={tournament.id}
+                    title={tournament.title}
+                    description={tournament.description}
+                    tournamentName={tournament.tournamentName}
+                    participants={tournament.participants}
+                    entryFee={parseFloat(tournament.entryFee) || 0}
+                    prizeMoney={parseFloat(tournament.prizeMoney) || 0}
                     onPurchase={handlePurchase}
                     onFavorite={handleFavorite}
-                    isFavorite={favorites.includes(game.gameName)}
-                    isPurchased={purchasedGames.includes(game.gameName)}
-                    imageUrl={game.imageUrl}
+                    isFavorite={favorites.includes(tournament.tournamentName || '')}
+                    isPurchased={purchasedTournaments.includes(tournament.tournamentName || '')}
+                    imageUrl={tournament.imageUrl}
                   />
                 ))
               ) : (
-                <p>No games found.</p>
+                <p>No tournaments found.</p>
               )}
             </div>
           </section>

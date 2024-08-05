@@ -158,3 +158,18 @@ const updateGameParticipants = async (gameName) => {
     throw new Error('Game not found');
   }
 };
+
+export const purchaseTournament = (tournamentId) => async (dispatch, getState) => {
+  try {
+    const state = getState();
+    const user = state.auth.user;
+
+    if (!user) throw new Error('User not logged in');
+
+    // Perform tournament purchase logic here
+
+    dispatch({ type: 'PURCHASE_TOURNAMENT_SUCCESS', payload: tournamentId });
+  } catch (error) {
+    dispatch({ type: 'PURCHASE_TOURNAMENT_FAILURE', payload: error.message });
+  }
+};

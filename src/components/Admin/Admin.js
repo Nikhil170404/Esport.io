@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchGames, addGame, updateGame, deleteGame } from '../../redux/actions/gameActions';
+import { fetchTournaments, addTournament, updateTournament, deleteTournament } from '../../redux/actions/tournamentActions';
 import { doc, getDoc } from 'firebase/firestore';
 import { firestore, storage } from '../../firebase';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
@@ -11,11 +11,11 @@ Modal.setAppElement('#root');
 
 const AdminPanel = () => {
   const dispatch = useDispatch();
-  const { games, isLoading, error } = useSelector((state) => state.game);
+  const { tournaments, isLoading, error } = useSelector((state) => state.tournament);
 
   const [formData, setFormData] = useState({
     title: '',
-    gameName: '',
+    tournamentName: '',
     description: '',
     entryFee: 0,
     participants: 0,
@@ -24,7 +24,7 @@ const AdminPanel = () => {
     isPaid: true,
     roomId: '',
     roomPassword: '',
-    currentGameId: null,
+    currentTournamentId: null,
   });
 
   const [participantsData, setParticipantsData] = useState({});
@@ -32,25 +32,25 @@ const AdminPanel = () => {
   const [modalIsOpen, setModalIsOpen] = useState(false);
 
   useEffect(() => {
-    dispatch(fetchGames());
+    dispatch(fetchTournaments());
   }, [dispatch]);
 
   useEffect(() => {
     const fetchParticipantsData = async () => {
       const newParticipantsData = {};
-      for (const game of games) {
-        const gameRef = doc(firestore, 'games', game.id);
-        const gameDoc = await getDoc(gameRef);
-        const gameData = gameDoc.data();
-        if (gameData && gameData.participantsData) {
-          newParticipantsData[game.id] = gameData.participantsData;
+      for (const tournament of tournaments) {
+        const tournamentRef = doc(firestore, 'tournaments', tournament.id);
+        const tournamentDoc = await getDoc(tournamentRef);
+        const tournamentData = tournamentDoc.data();
+        if (tournamentData && tournamentData.participantsData) {
+          newParticipantsData[tournament.id] = tournamentData.participantsData;
         }
       }
       setParticipantsData(newParticipantsData);
     };
 
     fetchParticipantsData();
-  }, [games]);
+  }, [tournaments]);
 
   const handleChange = (e) => {
     const { name, value, files } = e.target;
@@ -64,34 +64,34 @@ const AdminPanel = () => {
     let imageUrl = '';
 
     if (formData.image) {
-      const imageRef = ref(storage, `game-images/${formData.image.name}`);
+      const imageRef = ref(storage, `tournament-images/${formData.image.name}`);
       await uploadBytes(imageRef, formData.image);
       imageUrl = await getDownloadURL(imageRef);
     }
 
-    const newGame = {
+    const tournamentData = {
       title: formData.title,
-      gameName: formData.gameName,
+      tournamentName: formData.tournamentName,
       description: formData.description,
       entryFee: formData.isPaid ? formData.entryFee : 0,
       participants: formData.participants,
       prizePool: formData.prizePool,
-      imageUrl: imageUrl,
+      imageUrl: imageUrl || formData.imageUrl, // Use existing image if no new one is uploaded
       isPaid: formData.isPaid,
       roomId: formData.roomId,
       roomPassword: formData.roomPassword,
-      currentGameId: formData.currentGameId,
     };
 
-    if (formData.currentGameId) {
-      await dispatch(updateGame(newGame));
+    if (formData.currentTournamentId) {
+      await dispatch(updateTournament(formData.currentTournamentId, tournamentData));
     } else {
-      await dispatch(addGame(newGame));
+      await dispatch(addTournament(tournamentData));
     }
 
+    // Clear the form after submission
     setFormData({
       title: '',
-      gameName: '',
+      tournamentName: '',
       description: '',
       entryFee: 0,
       participants: 0,
@@ -100,20 +100,21 @@ const AdminPanel = () => {
       isPaid: true,
       roomId: '',
       roomPassword: '',
-      currentGameId: null,
+      currentTournamentId: null,
     });
   };
 
-  const handleEditGame = (game) => {
+  const handleEditTournament = (tournament) => {
     setFormData({
-      ...game,
-      isPaid: game.entryFee > 0,
+      ...tournament,
+      isPaid: tournament.entryFee > 0,
       image: null,
+      currentTournamentId: tournament.id,
     });
   };
 
-  const openParticipantsModal = (gameId) => {
-    setSelectedParticipants(participantsData[gameId] || []);
+  const openParticipantsModal = (tournamentId) => {
+    setSelectedParticipants(participantsData[tournamentId] || []);
     setModalIsOpen(true);
   };
 
@@ -125,7 +126,7 @@ const AdminPanel = () => {
     <div className="admin-panel">
       <h1>Admin Panel</h1>
       <div className="admin-form">
-        {['title', 'gameName', 'description', 'entryFee', 'participants', 'prizePool', 'roomId', 'roomPassword'].map((field, index) => (
+        {['title', 'tournamentName', 'description', 'entryFee', 'participants', 'prizePool', 'roomId', 'roomPassword'].map((field, index) => (
           <div className="form-group" key={index}>
             <label>{field.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}</label>
             <input 
@@ -139,7 +140,7 @@ const AdminPanel = () => {
           </div>
         ))}
         <div className="form-group">
-          <label>Game Image</label>
+          <label>Tournament Image</label>
           <input type="file" name="image" onChange={handleChange} />
         </div>
         <div className="form-group">
@@ -150,7 +151,7 @@ const AdminPanel = () => {
           </select>
         </div>
         <button onClick={handleSubmit} className="btn btn-primary">
-          {formData.currentGameId ? 'Update Game' : 'Add Game'}
+          {formData.currentTournamentId ? 'Update Tournament' : 'Add Tournament'}
         </button>
       </div>
 
@@ -158,26 +159,26 @@ const AdminPanel = () => {
       {error && <p className="admin-error">{error}</p>}
 
       <div className="game-list">
-        {games.map(game => (
-          <div key={game.id} className="game-card">
-            {game.imageUrl && <img src={game.imageUrl} alt={game.gameName} className="game-image" />}
-            <h2>{game.title}</h2>
-            <h3>{game.gameName}</h3>
-            <p>{game.description}</p>
-            <p>Entry Fee: {game.entryFee === 0 ? 'Free' : `$${game.entryFee}`}</p>
-            <p>Participants: {game.participants}</p>
-            <p>Prize Pool: ${game.prizePool}</p>
-            <p>Room ID: {game.roomId}</p>
-            <p>Room Password: {game.roomPassword}</p>
+        {tournaments.map(tournament => (
+          <div key={tournament.id} className="game-card">
+            {tournament.imageUrl && <img src={tournament.imageUrl} alt={tournament.tournamentName} className="game-image" />}
+            <h2>{tournament.title}</h2>
+            <h3>{tournament.tournamentName}</h3>
+            <p>{tournament.description}</p>
+            <p>Entry Fee: {tournament.entryFee === 0 ? 'Free' : `$${tournament.entryFee}`}</p>
+            <p>Participants: {tournament.participants}</p>
+            <p>Prize Pool: ${tournament.prizePool}</p>
+            <p>Room ID: {tournament.roomId}</p>
+            <p>Room Password: {tournament.roomPassword}</p>
             
-            <button onClick={() => openParticipantsModal(game.id)} className="btn btn-primary">
+            <button onClick={() => openParticipantsModal(tournament.id)} className="btn btn-primary">
               Show Participants
             </button>
             
-            <button onClick={() => handleEditGame(game)} className="btn btn-edit">
+            <button onClick={() => handleEditTournament(tournament)} className="btn btn-edit">
               Edit
             </button>
-            <button onClick={() => dispatch(deleteGame(game.id))} className="btn btn-delete">
+            <button onClick={() => dispatch(deleteTournament(tournament.id))} className="btn btn-delete">
               Delete
             </button>
           </div>
