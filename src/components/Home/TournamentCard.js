@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import { useDispatch, useSelector } from 'react-redux';
 import { joinTournament } from '../../redux/actions/tournamentActions';
+import { fetchWallet } from '../../redux/actions/walletAction'; // Removed updateWallet import
 import { firestore } from '../../firebase';
 import { doc, onSnapshot, updateDoc, getDoc, arrayUnion } from 'firebase/firestore';
 import './TournamentCard.css';
@@ -13,10 +14,10 @@ const TournamentCard = ({
   tournamentName,
   entryFee,
   prizeMoney,
-  isFavorite,
-  onFavorite,
-  isJoined,
-  imageUrl = '' // Default value for imageUrl
+  isFavorite = false,
+  onFavorite = () => {},
+  isJoined = false,
+  imageUrl = ''
 }) => {
   const [showCredentials, setShowCredentials] = useState(false);
   const [tournamentCredentials, setTournamentCredentials] = useState({ roomId: '', roomPassword: '' });
@@ -25,14 +26,14 @@ const TournamentCard = ({
   const [showForm, setShowForm] = useState(false);
   const [participantData, setParticipantData] = useState({
     username: '',
-    tournamentUid: '', // Added tournamentUid field
+    tournamentUid: '',
     mapDownloaded: false
   });
-  const [showPaymentPrompt, setShowPaymentPrompt] = useState(false); // New state for payment prompt
+  const [showPaymentPrompt, setShowPaymentPrompt] = useState(false);
 
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
-  const { balance } = useSelector((state) => state.user); // Assuming you have balance in your user state
+  const { balance } = useSelector((state) => state.wallet);
 
   const fetchTournamentData = useCallback(() => {
     const tournamentRef = doc(firestore, 'tournaments', id);
@@ -62,15 +63,18 @@ const TournamentCard = ({
     return () => unsubscribe();
   }, [fetchTournamentData]);
 
+  useEffect(() => {
+    if (user) {
+      dispatch(fetchWallet());
+    }
+  }, [dispatch, user]);
+
   const handlePayment = async () => {
-    // Replace with actual payment handling logic
     if (balance < entryFee) {
       console.warn("Insufficient funds. Please add funds to your wallet.");
       setShowPaymentPrompt(true);
       return false;
     }
-    // Process payment here, for example using Razorpay or another payment gateway
-    // After successful payment, return true
     return true;
   };
 
@@ -99,7 +103,6 @@ const TournamentCard = ({
         }
 
         if (entryFee > 0) {
-          // Handle payment if entry fee is required
           const paymentSuccess = await handlePayment();
           if (!paymentSuccess) return;
         }
@@ -111,7 +114,7 @@ const TournamentCard = ({
           const tournamentData = tournamentDoc.data();
 
           if (tournamentData.participants > 0) {
-            setShowForm(true); // Show form first
+            setShowForm(true);
           } else {
             setFull(true);
           }
@@ -131,10 +134,10 @@ const TournamentCard = ({
       const tournamentRef = doc(firestore, 'tournaments', id);
 
       await updateDoc(tournamentRef, {
-        participants: participants - 1, // Decrease participants count here
+        participants: participants - 1,
         participantsData: arrayUnion({
           ...participantData,
-          userId: user.uid // Add userId to participantData
+          userId: user.uid
         })
       });
 
@@ -151,7 +154,7 @@ const TournamentCard = ({
 
       dispatch(joinTournament(tournamentName));
       setShowForm(false);
-      setShowCredentials(true); // Show credentials after join
+      setShowCredentials(true);
     } catch (error) {
       console.error("Error submitting participant data: ", error);
     }
@@ -196,7 +199,7 @@ const TournamentCard = ({
           <button
             className={joinButtonClass}
             onClick={handleButtonClick}
-            disabled={full || (isJoined && showCredentials)} // Disable if full or already joined and credentials shown
+            disabled={full || (isJoined && showCredentials)}
           >
             {joinButtonText}
           </button>
@@ -265,10 +268,17 @@ TournamentCard.propTypes = {
   tournamentName: PropTypes.string.isRequired,
   entryFee: PropTypes.number.isRequired,
   prizeMoney: PropTypes.number.isRequired,
-  isFavorite: PropTypes.bool.isRequired,
-  onFavorite: PropTypes.func.isRequired,
-  isJoined: PropTypes.bool.isRequired,
+  isFavorite: PropTypes.bool,
+  onFavorite: PropTypes.func,
+  isJoined: PropTypes.bool,
   imageUrl: PropTypes.string
+};
+
+TournamentCard.defaultProps = {
+  isFavorite: false,
+  onFavorite: () => {},
+  isJoined: false,
+  imageUrl: ''
 };
 
 export default TournamentCard;

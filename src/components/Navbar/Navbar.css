@@ -9,7 +9,6 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   position: relative;
   transition: background-color 0.3s ease;
-  overflow-x: hidden; /* Prevent horizontal scrolling */
 }
 
 .navbar-container {
@@ -99,9 +98,6 @@
   border-radius: 4px;
   transition: background-color 0.3s ease, color 0.3s ease;
   font-weight: 500;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem; /* Space between icon and text */
 }
 
 .nav-links a:hover {
@@ -119,9 +115,6 @@
   font-size: 1rem;
   transition: background-color 0.3s ease;
   font-weight: bold;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
 }
 
 .logout-btn:hover {
