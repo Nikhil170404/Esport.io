@@ -81,9 +81,10 @@ export const logout = () => async (dispatch) => {
 };
 
 // Action for updating user profile
+// Action for updating user profile
 export const updateUser = (uid, userData) => async (dispatch) => {
   try {
-    const { name, age, bio, profileImage } = userData;
+    const { name, age, bio, profileImage, gameUid } = userData;
 
     // Update user profile in Firebase Auth
     const user = auth.currentUser;
@@ -93,13 +94,14 @@ export const updateUser = (uid, userData) => async (dispatch) => {
 
     // Update additional user information in Firestore
     const userRef = doc(firestore, 'users', uid);
-    await updateDoc(userRef, { name, age, bio, profileImage });
+    await updateDoc(userRef, { name, age, bio, profileImage, gameUid });
 
-    dispatch({ type: 'UPDATE_USER_SUCCESS', payload: { uid, name, age, bio, profileImage } });
+    dispatch({ type: 'UPDATE_USER_SUCCESS', payload: { uid, name, age, bio, profileImage, gameUid } });
   } catch (error) {
     dispatch({ type: 'UPDATE_USER_FAILURE', payload: error.message });
   }
 };
+
 
 // Action to set user from local storage
 export const setUser = (user) => ({

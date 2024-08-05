@@ -1,0 +1,63 @@
+/* src/components/Settings/Settings.css */
+.settings-container {
+    padding: 20px;
+    font-family: Arial, sans-serif;
+  }
+  
+  .settings-container h1 {
+    margin-bottom: 10px;
+  }
+  
+  .settings-container p {
+    margin-bottom: 20px;
+    color: #555;
+  }
+  
+  .settings-form {
+    max-width: 600px;
+    margin: 0 auto;
+  }
+  
+  .settings-form section {
+    margin-bottom: 20px;
+  }
+  
+  .settings-form h2 {
+    margin-bottom: 10px;
+    font-size: 1.5rem;
+    color: #333;
+  }
+  
+  .form-group {
+    margin-bottom: 15px;
+  }
+  
+  .form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+  }
+  
+  .form-group input,
+  .form-group select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+  }
+  
+  .save-button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    background-color: #007bff;
+    color: #fff;
+    font-size: 1rem;
+    cursor: pointer;
+  }
+  
+  .save-button:hover {
+    background-color: #0056b3;
+  }
+  
