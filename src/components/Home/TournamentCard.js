@@ -28,9 +28,11 @@ const TournamentCard = ({
     tournamentUid: '', // Added tournamentUid field
     mapDownloaded: false
   });
+  const [showPaymentPrompt, setShowPaymentPrompt] = useState(false); // New state for payment prompt
 
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
+  const { balance } = useSelector((state) => state.user); // Assuming you have balance in your user state
 
   const fetchTournamentData = useCallback(() => {
     const tournamentRef = doc(firestore, 'tournaments', id);
@@ -60,6 +62,18 @@ const TournamentCard = ({
     return () => unsubscribe();
   }, [fetchTournamentData]);
 
+  const handlePayment = async () => {
+    // Replace with actual payment handling logic
+    if (balance < entryFee) {
+      console.warn("Insufficient funds. Please add funds to your wallet.");
+      setShowPaymentPrompt(true);
+      return false;
+    }
+    // Process payment here, for example using Razorpay or another payment gateway
+    // After successful payment, return true
+    return true;
+  };
+
   const handleJoin = async () => {
     if (!user) {
       console.error("User is not logged in");
@@ -82,6 +96,12 @@ const TournamentCard = ({
           console.warn("Tournament already joined");
           setShowCredentials(true);
           return;
+        }
+
+        if (entryFee > 0) {
+          // Handle payment if entry fee is required
+          const paymentSuccess = await handlePayment();
+          if (!paymentSuccess) return;
         }
 
         const tournamentRef = doc(firestore, 'tournaments', id);
@@ -141,7 +161,7 @@ const TournamentCard = ({
     if (full) {
       return 'Full';
     }
-    return isJoined ? (showCredentials ? 'Hide Credentials' : 'Show Credentials') : `Join ${entryFee} USD`;
+    return isJoined ? (showCredentials ? 'Hide Credentials' : 'Show Credentials') : `Join ₹${entryFee}`;
   }, [full, isJoined, showCredentials, entryFee]);
 
   const joinButtonClass = useMemo(() => {
@@ -169,8 +189,8 @@ const TournamentCard = ({
         <p className="tournament-card-description">{description}</p>
         <div className="tournament-info">
           <p>Participants: {participants}</p>
-          <p>Entry Fee: {entryFee} USD</p>
-          <p>Prize Money: {prizeMoney} USD</p>
+          <p>Entry Fee: ₹{entryFee}</p>
+          <p>Prize Money: ₹{prizeMoney}</p>
         </div>
         <div className="tournament-actions">
           <button
@@ -222,6 +242,17 @@ const TournamentCard = ({
             <p>Room Password: {tournamentCredentials.roomPassword}</p>
           </div>
         )}
+        {showPaymentPrompt && (
+          <div className="payment-prompt">
+            <p>You need to add funds to your wallet to join this tournament. Please go to the payment section.</p>
+            <button onClick={() => setShowPaymentPrompt(false)}>Close</button>
+          </div>
+        )}
+      </div>
+      <div className="tournament-card-footer">
+        <button onClick={onFavorite} className={`favorite-button ${isFavorite ? 'favorite' : ''}`}>
+          {isFavorite ? 'Unfavorite' : 'Favorite'}
+        </button>
       </div>
     </div>
   );
@@ -230,10 +261,12 @@ const TournamentCard = ({
 TournamentCard.propTypes = {
   id: PropTypes.string.isRequired,
   title: PropTypes.string.isRequired,
-  description: PropTypes.string,
+  description: PropTypes.string.isRequired,
   tournamentName: PropTypes.string.isRequired,
   entryFee: PropTypes.number.isRequired,
   prizeMoney: PropTypes.number.isRequired,
+  isFavorite: PropTypes.bool.isRequired,
+  onFavorite: PropTypes.func.isRequired,
   isJoined: PropTypes.bool.isRequired,
   imageUrl: PropTypes.string
 };

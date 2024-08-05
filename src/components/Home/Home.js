@@ -7,7 +7,8 @@ import Loader from '../Loader/Loader';
 import './Home.css';
 import { FaSearch, FaSort, FaTrashAlt } from 'react-icons/fa';
 import { collection, onSnapshot } from 'firebase/firestore';
-import { firestore } from '../../firebase'; 
+import { firestore } from '../../firebase';
+import { formatToRupees } from '../../utils/currencyFormatter'; // Import the currency formatter
 
 const Home = () => {
   const dispatch = useDispatch();
@@ -144,8 +145,8 @@ const Home = () => {
                   description={tournament.description}
                   tournamentName={tournament.tournamentName}
                   participants={tournament.participants}
-                  entryFee={parseFloat(tournament.entryFee) || 0}
-                  prizeMoney={parseFloat(tournament.prizeMoney) || 0}
+                  entryFee={formatToRupees(parseFloat(tournament.entryFee) || 0)} // Format entryFee
+                  prizeMoney={formatToRupees(parseFloat(tournament.prizeMoney) || 0)} // Format prizeMoney
                   onPurchase={handlePurchase}
                   onFavorite={handleFavorite}
                   isFavorite={favorites.includes(tournament.tournamentName || '')}
@@ -167,8 +168,8 @@ const Home = () => {
                     description={tournament.description}
                     tournamentName={tournament.tournamentName}
                     participants={tournament.participants}
-                    entryFee={parseFloat(tournament.entryFee) || 0}
-                    prizeMoney={parseFloat(tournament.prizeMoney) || 0}
+                    entryFee={formatToRupees(parseFloat(tournament.entryFee) || 0)} // Format entryFee
+                    prizeMoney={formatToRupees(parseFloat(tournament.prizeMoney) || 0)} // Format prizeMoney
                     onPurchase={handlePurchase}
                     onFavorite={handleFavorite}
                     isFavorite={favorites.includes(tournament.tournamentName || '')}

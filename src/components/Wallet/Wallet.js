@@ -64,7 +64,7 @@ const Wallet = () => {
   return (
     <div className="wallet-container">
       <h1>My Wallet</h1>
-      <p>Balance: ${balance.toFixed(2)}</p>
+      <p>Balance: ₹{balance.toFixed(2)}</p>
       <form onSubmit={handleTransaction}>
         <input
           type="number"
@@ -83,7 +83,7 @@ const Wallet = () => {
       <ul>
         {transactions.map((transaction, index) => (
           <li key={index}>
-            {transaction.date.toDate().toLocaleString()} - {transaction.type}: $
+            {transaction.date.toDate().toLocaleString()} - {transaction.type}: ₹
             {transaction.amount.toFixed(2)} - {transaction.details}
           </li>
         ))}

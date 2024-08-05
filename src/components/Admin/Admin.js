@@ -165,9 +165,9 @@ const AdminPanel = () => {
             <h2>{tournament.title}</h2>
             <h3>{tournament.tournamentName}</h3>
             <p>{tournament.description}</p>
-            <p>Entry Fee: {tournament.entryFee === 0 ? 'Free' : `$${tournament.entryFee}`}</p>
+            <p>Entry Fee: {tournament.entryFee === 0 ? 'Free' : `₹${tournament.entryFee}`}</p>
             <p>Participants: {tournament.participants}</p>
-            <p>Prize Pool: ${tournament.prizePool}</p>
+            <p>Prize Pool: ₹{tournament.prizePool}</p>
             <p>Room ID: {tournament.roomId}</p>
             <p>Room Password: {tournament.roomPassword}</p>
             
