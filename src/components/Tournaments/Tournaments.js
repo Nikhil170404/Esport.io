@@ -1,5 +1,4 @@
-// src/components/Tournaments/Tournaments.js
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { firestore } from '../../firebase';
 import { collection, getDocs, query } from 'firebase/firestore';
 import './Tournaments.css';
@@ -8,14 +7,16 @@ const Tournaments = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filters, setFilters] = useState({ gameType: '', dateRange: '' });
   const [tournaments, setTournaments] = useState([]);
-  const [filteredTournaments, setFilteredTournaments] = useState([]);
 
   useEffect(() => {
     const fetchTournaments = async () => {
       try {
         const q = query(collection(firestore, 'tournaments'));
         const querySnapshot = await getDocs(q);
-        const tournamentsList = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const tournamentsList = querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
         setTournaments(tournamentsList);
       } catch (error) {
         console.error('Error fetching tournaments:', error);
@@ -25,35 +26,30 @@ const Tournaments = () => {
     fetchTournaments();
   }, []);
 
-  useEffect(() => {
-    const applyFilters = () => {
-      let filtered = tournaments;
+  const filteredTournaments = useMemo(() => {
+    let filtered = tournaments;
 
-      if (searchTerm) {
-        filtered = filtered.filter(tournament =>
-          tournament.name.toLowerCase().includes(searchTerm.toLowerCase())
-        );
-      }
+    if (searchTerm) {
+      filtered = filtered.filter(tournament =>
+        tournament.tournamentName.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
 
-      if (filters.gameType) {
-        filtered = filtered.filter(tournament =>
-          tournament.gameType === filters.gameType
-        );
-      }
+    if (filters.gameType) {
+      filtered = filtered.filter(tournament =>
+        tournament.gameType === filters.gameType
+      );
+    }
 
-      if (filters.dateRange) {
-        // Example: dateRange format could be '2024-08-01_to_2024-08-31'
-        const [startDate, endDate] = filters.dateRange.split('_to_').map(date => new Date(date));
-        filtered = filtered.filter(tournament => {
-          const tournamentDate = new Date(tournament.date);
-          return tournamentDate >= startDate && tournamentDate <= endDate;
-        });
-      }
+    if (filters.dateRange) {
+      const [startDate, endDate] = filters.dateRange.split('_to_').map(date => new Date(date));
+      filtered = filtered.filter(tournament => {
+        const tournamentDate = new Date(tournament.date);
+        return tournamentDate >= startDate && tournamentDate <= endDate;
+      });
+    }
 
-      setFilteredTournaments(filtered);
-    };
-
-    applyFilters();
+    return filtered;
   }, [searchTerm, filters, tournaments]);
 
   const handleSearchChange = (e) => {
@@ -97,8 +93,8 @@ const Tournaments = () => {
         {filteredTournaments.length > 0 ? (
           filteredTournaments.map(tournament => (
             <div key={tournament.id} className="tournament-card">
-              <h2>{tournament.name}</h2>
-              <p>Game: {tournament.gameType}</p>
+              <h2>{tournament.title}</h2>
+              <p>Game: {tournament.tournamentName}</p>
               <p>Date: {tournament.date}</p>
               <p>{tournament.description}</p>
               <button>Join Tournament</button>

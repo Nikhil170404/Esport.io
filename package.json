@@ -1,5 +1,5 @@
 {
-  "homepage": "https://Nikhil170404.github.io/Esport.io",
+  "homepage": "/Esport.io",
   "name": "esports-platform",
   "version": "0.1.0",
   "private": true,
@@ -55,3 +55,4 @@
     "gh-pages": "^6.1.1"
   }
 }
+
