@@ -1,5 +1,5 @@
-import { doc, getDoc, updateDoc } from 'firebase/firestore'; // Removed arrayUnion
-import { firestore } from '../../firebase'; 
+import { doc, getDoc, updateDoc } from 'firebase/firestore'; // Ensure updateDoc is imported
+import { firestore } from '../../firebase';
 
 // Action types
 export const FETCH_WALLET_REQUEST = 'FETCH_WALLET_REQUEST';
@@ -20,9 +20,12 @@ export const fetchWallet = () => async (dispatch, getState) => {
     const walletDoc = await getDoc(walletRef);
 
     if (walletDoc.exists()) {
+      const data = walletDoc.data();
+      // Ensure balance is a number
+      const balance = parseFloat(data.balance) || 0;
       dispatch({
         type: FETCH_WALLET_SUCCESS,
-        payload: walletDoc.data()
+        payload: { balance }
       });
     } else {
       throw new Error('Wallet not found');

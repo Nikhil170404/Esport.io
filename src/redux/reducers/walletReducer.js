@@ -24,7 +24,7 @@ import {
       case UPDATE_WALLET_REQUEST:
         return { ...state, loading: true, error: null };
       case UPDATE_WALLET_SUCCESS:
-        return { ...state, loading: false, balance: state.balance + action.payload };
+        return { ...state, loading: false, balance: action.payload.balance };
       case UPDATE_WALLET_FAILURE:
         return { ...state, loading: false, error: action.payload };
       default:
