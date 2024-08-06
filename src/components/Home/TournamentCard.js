@@ -2,9 +2,9 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import { useDispatch, useSelector } from 'react-redux';
 import { joinTournament } from '../../redux/actions/tournamentActions';
-import { fetchWallet } from '../../redux/actions/walletAction'; // Removed updateWallet import
+import { fetchWallet, updateWallet } from '../../redux/actions/walletAction'; // Ensure updateWallet is imported
 import { firestore } from '../../firebase';
-import { doc, onSnapshot, updateDoc, getDoc, arrayUnion, FieldValue } from 'firebase/firestore';
+import { doc, onSnapshot, updateDoc, getDoc, arrayUnion, increment } from 'firebase/firestore';
 import './TournamentCard.css';
 
 const TournamentCard = ({
@@ -30,6 +30,7 @@ const TournamentCard = ({
     mapDownloaded: false
   });
   const [showPaymentPrompt, setShowPaymentPrompt] = useState(false);
+  const [confirmationMessage, setConfirmationMessage] = useState('');
 
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
@@ -88,8 +89,10 @@ const TournamentCard = ({
     if (user) {
       const userWalletRef = doc(firestore, 'users', user.uid);
       await updateDoc(userWalletRef, {
-        balance: FieldValue.increment(-amount) // Decrement the balance
+        balance: increment(-amount) // Decrement the balance
       });
+
+      dispatch(updateWallet(balance - amount)); // Update Redux state
     }
   };
 
@@ -120,7 +123,11 @@ const TournamentCard = ({
         if (entryFee > 0) {
           const paymentSuccess = await handlePayment();
           if (!paymentSuccess) return;
+
           await updateWalletBalance(entryFee); // Deduct the entry fee from wallet
+
+          // Set confirmation message
+          setConfirmationMessage(`Successfully joined the tournament. ₹${entryFee} has been deducted from your wallet.`);
         }
 
         const tournamentRef = doc(firestore, 'tournaments', id);
@@ -251,24 +258,19 @@ const TournamentCard = ({
                 <option value="yes">Yes</option>
               </select>
             </div>
-            <button type="submit" className="submit-button">Submit</button>
+            <button type="submit" className="form-submit-button">Submit</button>
           </form>
         )}
         {showCredentials && (
           <div className="tournament-credentials">
+            <h4>Tournament Room Credentials:</h4>
             <p>Room ID: {tournamentCredentials.roomId}</p>
             <p>Password: {tournamentCredentials.roomPassword}</p>
           </div>
         )}
-        {showPaymentPrompt && (
-          <div className="payment-prompt">
-            <p>Your balance is insufficient. Please add funds and try again.</p>
-          </div>
-        )}
+        {showPaymentPrompt && <p className="error-message">Insufficient funds. Please add funds to your wallet.</p>}
+        {confirmationMessage && <p className="confirmation-message">{confirmationMessage}</p>}
       </div>
-      <button className="favorite-button" onClick={onFavorite}>
-        {isFavorite ? 'Unfavorite' : 'Favorite'}
-      </button>
     </div>
   );
 };
