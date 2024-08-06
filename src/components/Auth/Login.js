@@ -1,5 +1,4 @@
-// src/components/Auth/Login.js
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { login } from '../../redux/actions/authAction';
@@ -8,18 +7,24 @@ import './Auth.css'; // Import the CSS file
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { user, error } = useSelector((state) => state.auth);
 
   const handleLogin = (e) => {
     e.preventDefault();
+    setLoading(true);
     dispatch(login(email, password));
   };
 
-  if (user) {
-    navigate(user.isAdmin ? '/admin' : '/'); // Redirect based on role
-  }
+  useEffect(() => {
+    if (user) {
+      navigate(user.isAdmin ? '/admin' : '/'); // Redirect based on role
+    } else {
+      setLoading(false); // Stop loading if there's no user or an error occurs
+    }
+  }, [user, error, navigate]);
 
   return (
     <div className="auth-container">
@@ -32,6 +37,7 @@ const Login = () => {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
+            disabled={loading}
           />
         </div>
         <div className="form-group">
@@ -41,9 +47,12 @@ const Login = () => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
+            disabled={loading}
           />
         </div>
-        <button type="submit">Login</button>
+        <button type="submit" disabled={loading}>
+          {loading ? 'Logging in...' : 'Login'}
+        </button>
       </form>
       {error && <p className="error-message">{error}</p>}
     </div>

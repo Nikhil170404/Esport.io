@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import { useDispatch, useSelector } from 'react-redux';
 import { joinTournament } from '../../redux/actions/tournamentActions';
-import { fetchWallet, updateWallet } from '../../redux/actions/walletAction'; // Ensure updateWallet is imported
+import { fetchWallet, updateWallet } from '../../redux/actions/walletAction';
 import { firestore } from '../../firebase';
 import { doc, onSnapshot, updateDoc, getDoc, arrayUnion, increment } from 'firebase/firestore';
 import './TournamentCard.css';
@@ -19,18 +19,21 @@ const TournamentCard = ({
   isJoined = false,
   imageUrl = ''
 }) => {
-  const [showCredentials, setShowCredentials] = useState(false);
-  const [tournamentCredentials, setTournamentCredentials] = useState({ roomId: '', roomPassword: '' });
-  const [full, setFull] = useState(false);
-  const [participants, setParticipants] = useState(0);
-  const [showForm, setShowForm] = useState(false);
+  const [state, setState] = useState({
+    showCredentials: false,
+    tournamentCredentials: { roomId: '', roomPassword: '' },
+    full: false,
+    participants: 0,
+    showForm: false,
+    showPaymentPrompt: false,
+    confirmationMessage: ''
+  });
+
   const [participantData, setParticipantData] = useState({
     username: '',
     tournamentUid: '',
     mapDownloaded: false
   });
-  const [showPaymentPrompt, setShowPaymentPrompt] = useState(false);
-  const [confirmationMessage, setConfirmationMessage] = useState('');
 
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
@@ -42,15 +45,16 @@ const TournamentCard = ({
     const unsubscribe = onSnapshot(tournamentRef, (docSnapshot) => {
       const tournamentData = docSnapshot.data();
       if (tournamentData) {
-        setParticipants(tournamentData.participants);
-        setFull(tournamentData.participants <= 0);
-        if (tournamentData.roomId && tournamentData.roomPassword) {
-          setTournamentCredentials({
-            roomId: tournamentData.roomId,
-            roomPassword: tournamentData.roomPassword
-          });
-          if (isJoined) setShowCredentials(true);
-        }
+        setState((prevState) => ({
+          ...prevState,
+          participants: tournamentData.participants,
+          full: tournamentData.participants <= 0,
+          tournamentCredentials: {
+            roomId: tournamentData.roomId || prevState.tournamentCredentials.roomId,
+            roomPassword: tournamentData.roomPassword || prevState.tournamentCredentials.roomPassword
+          },
+          showCredentials: isJoined && tournamentData.roomId && tournamentData.roomPassword
+        }));
       } else {
         console.error("No such tournament!");
       }
@@ -70,39 +74,39 @@ const TournamentCard = ({
     }
   }, [dispatch, user]);
 
-  const handlePayment = async () => {
+  const handlePayment = useCallback(async () => {
     if (user && balance !== undefined) {
       if (balance < entryFee) {
         console.warn("Insufficient funds. Please add funds to your wallet.");
-        setShowPaymentPrompt(true);
+        setState((prevState) => ({ ...prevState, showPaymentPrompt: true }));
         return false;
       }
       return true;
     } else {
       console.error("Error fetching wallet or user data.");
-      setShowPaymentPrompt(true);
+      setState((prevState) => ({ ...prevState, showPaymentPrompt: true }));
       return false;
     }
-  };
+  }, [user, balance, entryFee]);
 
-  const updateWalletBalance = async (amount) => {
+  const updateWalletBalance = useCallback(async (amount) => {
     if (user) {
       const userWalletRef = doc(firestore, 'users', user.uid);
       await updateDoc(userWalletRef, {
-        balance: increment(-amount) // Decrement the balance
+        balance: increment(-amount)
       });
 
-      dispatch(updateWallet(balance - amount)); // Update Redux state
+      dispatch(updateWallet(balance - amount));
     }
-  };
+  }, [user, balance, dispatch]);
 
-  const handleJoin = async () => {
+  const handleJoin = useCallback(async () => {
     if (!user) {
       console.error("User is not logged in");
       return;
     }
 
-    if (full) {
+    if (state.full) {
       console.warn("Tournament is full");
       return;
     }
@@ -116,7 +120,7 @@ const TournamentCard = ({
 
         if (userTournamentsData.joinedTournaments && userTournamentsData.joinedTournaments.includes(id)) {
           console.warn("Tournament already joined");
-          setShowCredentials(true);
+          setState((prevState) => ({ ...prevState, showCredentials: true }));
           return;
         }
 
@@ -124,10 +128,11 @@ const TournamentCard = ({
           const paymentSuccess = await handlePayment();
           if (!paymentSuccess) return;
 
-          await updateWalletBalance(entryFee); // Deduct the entry fee from wallet
-
-          // Set confirmation message
-          setConfirmationMessage(`Successfully joined the tournament. ₹${entryFee} has been deducted from your wallet.`);
+          await updateWalletBalance(entryFee);
+          setState((prevState) => ({
+            ...prevState,
+            confirmationMessage: `Successfully joined the tournament. ₹${entryFee} has been deducted from your wallet.`
+          }));
         }
 
         const tournamentRef = doc(firestore, 'tournaments', id);
@@ -137,9 +142,9 @@ const TournamentCard = ({
           const tournamentData = tournamentDoc.data();
 
           if (tournamentData.participants > 0) {
-            setShowForm(true);
+            setState((prevState) => ({ ...prevState, showForm: true }));
           } else {
-            setFull(true);
+            setState((prevState) => ({ ...prevState, full: true }));
           }
         } else {
           console.error("No such tournament!");
@@ -148,7 +153,7 @@ const TournamentCard = ({
     } catch (error) {
       console.error("Error joining tournament: ", error);
     }
-  };
+  }, [user, id, state.full, entryFee, handlePayment, updateWalletBalance]);
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
@@ -157,7 +162,7 @@ const TournamentCard = ({
       const tournamentRef = doc(firestore, 'tournaments', id);
 
       await updateDoc(tournamentRef, {
-        participants: participants - 1,
+        participants: state.participants - 1,
         participantsData: arrayUnion({
           ...participantData,
           userId: user.uid
@@ -176,30 +181,33 @@ const TournamentCard = ({
       });
 
       dispatch(joinTournament(tournamentName));
-      setShowForm(false);
-      setShowCredentials(true);
+      setState((prevState) => ({
+        ...prevState,
+        showForm: false,
+        showCredentials: true
+      }));
     } catch (error) {
       console.error("Error submitting participant data: ", error);
     }
   };
 
   const joinButtonText = useMemo(() => {
-    if (full) {
+    if (state.full) {
       return 'Full';
     }
-    return isJoined ? (showCredentials ? 'Hide Credentials' : 'Show Credentials') : `Join ₹${entryFee}`;
-  }, [full, isJoined, showCredentials, entryFee]);
+    return isJoined ? (state.showCredentials ? 'Hide Credentials' : 'Show Credentials') : `Join ₹${entryFee}`;
+  }, [state.full, isJoined, state.showCredentials, entryFee]);
 
   const joinButtonClass = useMemo(() => {
-    if (full) {
+    if (state.full) {
       return 'join-button full';
     }
     return isJoined ? 'join-button joined' : 'join-button';
-  }, [full, isJoined]);
+  }, [state.full, isJoined]);
 
   const handleButtonClick = () => {
     if (isJoined) {
-      setShowCredentials(!showCredentials);
+      setState((prevState) => ({ ...prevState, showCredentials: !prevState.showCredentials }));
     } else {
       handleJoin();
     }
@@ -214,7 +222,7 @@ const TournamentCard = ({
       <div className="tournament-card-content">
         <p className="tournament-card-description">{description}</p>
         <div className="tournament-info">
-          <p>Participants: {participants}</p>
+          <p>Participants: {state.participants}</p>
           <p>Entry Fee: ₹{entryFee}</p>
           <p>Prize Money: ₹{prizeMoney}</p>
         </div>
@@ -222,12 +230,12 @@ const TournamentCard = ({
           <button
             className={joinButtonClass}
             onClick={handleButtonClick}
-            disabled={full || (isJoined && showCredentials)}
+            disabled={state.full || (isJoined && state.showCredentials)}
           >
             {joinButtonText}
           </button>
         </div>
-        {showForm && (
+        {state.showForm && (
           <form className="participant-form" onSubmit={handleFormSubmit}>
             <div className="form-group">
               <label>Username</label>
@@ -248,28 +256,34 @@ const TournamentCard = ({
               />
             </div>
             <div className="form-group">
-              <label>Map Downloaded?</label>
-              <select
-                value={participantData.mapDownloaded ? 'yes' : 'no'}
-                onChange={(e) => setParticipantData({ ...participantData, mapDownloaded: e.target.value === 'yes' })}
-                required
-              >
-                <option value="no">No</option>
-                <option value="yes">Yes</option>
-              </select>
+              <label>
+                <input
+                  type="checkbox"
+                  checked={participantData.mapDownloaded}
+                  onChange={(e) => setParticipantData({ ...participantData, mapDownloaded: e.target.checked })}
+                />
+                Map Downloaded
+              </label>
             </div>
-            <button type="submit" className="form-submit-button">Submit</button>
+            <button type="submit" className="submit-button">Submit</button>
           </form>
         )}
-        {showCredentials && (
-          <div className="tournament-credentials">
-            <h4>Tournament Room Credentials:</h4>
-            <p>Room ID: {tournamentCredentials.roomId}</p>
-            <p>Password: {tournamentCredentials.roomPassword}</p>
+        {state.showCredentials && (
+          <div className="credentials">
+            <p>Room ID: {state.tournamentCredentials.roomId}</p>
+            <p>Password: {state.tournamentCredentials.roomPassword}</p>
           </div>
         )}
-        {showPaymentPrompt && <p className="error-message">Insufficient funds. Please add funds to your wallet.</p>}
-        {confirmationMessage && <p className="confirmation-message">{confirmationMessage}</p>}
+        {state.showPaymentPrompt && (
+          <div className="payment-prompt">
+            <p>Insufficient funds! Please add funds to your wallet.</p>
+          </div>
+        )}
+        {state.confirmationMessage && (
+          <div className="confirmation-message">
+            <p>{state.confirmationMessage}</p>
+          </div>
+        )}
       </div>
     </div>
   );

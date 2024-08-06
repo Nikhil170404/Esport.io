@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { updateUser } from '../../redux/actions/authAction';
-import { fetchWallet } from '../../redux/actions/walletAction'; // Import wallet action
+import { fetchWallet } from '../../redux/actions/walletAction';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { firestore, storage } from '../../firebase';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
@@ -9,7 +9,7 @@ import './Profile.css';
 
 const Profile = () => {
   const { user } = useSelector((state) => state.auth);
-  const wallet = useSelector((state) => state.wallet); // Access wallet from state
+  const { balance } = useSelector((state) => state.wallet);
   const dispatch = useDispatch();
 
   const [isEditing, setIsEditing] = useState(false);
@@ -19,32 +19,28 @@ const Profile = () => {
     age: user?.age || '',
     bio: user?.bio || '',
     profileImage: user?.profileImage || '',
-    gameUid: user?.gameUid || ''
+    gameUid: user?.gameUid || '',
   });
   const [file, setFile] = useState(null);
 
-  useEffect(() => {
+  const fetchUserProfile = useCallback(() => {
     if (user?.uid) {
       const unsubscribe = onSnapshot(doc(firestore, 'users', user.uid), (doc) => {
-        const data = doc.data();
-        setFormData({
-          name: data.name,
-          email: data.email,
-          age: data.age,
-          bio: data.bio,
-          profileImage: data.profileImage,
-          gameUid: data.gameUid
-        });
+        setFormData((prev) => ({ ...prev, ...doc.data() }));
       });
-
-      dispatch(fetchWallet()); // Fetch wallet information
-      return () => unsubscribe();
+      dispatch(fetchWallet());
+      return unsubscribe;
     }
   }, [user?.uid, dispatch]);
 
+  useEffect(() => {
+    const unsubscribe = fetchUserProfile();
+    return () => unsubscribe && unsubscribe();
+  }, [fetchUserProfile]);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleFileChange = (e) => {
@@ -55,28 +51,24 @@ const Profile = () => {
     let profileImageUrl = formData.profileImage;
 
     if (file) {
-      // Delete the previous profile image from Firebase Storage
-      if (profileImageUrl) {
-        const oldImageRef = ref(storage, profileImageUrl);
-        await deleteObject(oldImageRef).catch((error) => {
-          console.error("Error deleting old profile image: ", error);
-        });
+      try {
+        if (profileImageUrl) {
+          const oldImageRef = ref(storage, profileImageUrl);
+          await deleteObject(oldImageRef);
+        }
+        const fileRef = ref(storage, `profile-images/${user.uid}/${file.name}`);
+        await uploadBytes(fileRef, file);
+        profileImageUrl = await getDownloadURL(fileRef);
+      } catch (error) {
+        console.error("Error handling profile image: ", error);
       }
-
-      // Upload the new profile image
-      const fileRef = ref(storage, `profile-images/${user.uid}/${file.name}`);
-      await uploadBytes(fileRef, file);
-      profileImageUrl = await getDownloadURL(fileRef);
     }
 
-    // Update the user's profile data in Firestore
     dispatch(updateUser(user.uid, { ...formData, profileImage: profileImageUrl }));
     setIsEditing(false);
   };
 
-  if (!user) {
-    return <p>Please log in to view your profile.</p>;
-  }
+  if (!user) return <p>Please log in to view your profile.</p>;
 
   return (
     <div className="profile-container">
@@ -84,47 +76,20 @@ const Profile = () => {
       <img src={formData.profileImage || 'default-profile.png'} alt="Profile" className="profile-image" />
       {isEditing ? (
         <div className="profile-edit-form">
-          <label>Name:</label>
-          <input
-            type="text"
-            name="name"
-            value={formData.name}
-            onChange={handleChange}
-          />
-          <label>Email:</label>
-          <input
-            type="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-            disabled
-          />
-          <label>Age:</label>
-          <input
-            type="number"
-            name="age"
-            value={formData.age}
-            onChange={handleChange}
-          />
-          <label>Bio:</label>
-          <textarea
-            name="bio"
-            value={formData.bio}
-            onChange={handleChange}
-          />
-          <label>Game UID:</label>
-          <input
-            type="text"
-            name="gameUid"
-            value={formData.gameUid}
-            onChange={handleChange}
-          />
+          {['name', 'email', 'age', 'bio', 'gameUid'].map((field) => (
+            <div key={field}>
+              <label>{field.charAt(0).toUpperCase() + field.slice(1)}:</label>
+              <input
+                type={field === 'age' ? 'number' : 'text'}
+                name={field}
+                value={formData[field]}
+                onChange={handleChange}
+                disabled={field === 'email'}
+              />
+            </div>
+          ))}
           <label>Profile Image:</label>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleFileChange}
-          />
+          <input type="file" accept="image/*" onChange={handleFileChange} />
           <div className="profile-edit-actions">
             <button onClick={handleSave}>Save Changes</button>
             <button onClick={() => setIsEditing(false)}>Cancel</button>
@@ -136,7 +101,7 @@ const Profile = () => {
           <p><strong>Age:</strong> {formData.age}</p>
           <p><strong>Bio:</strong> {formData.bio}</p>
           <p><strong>Game UID:</strong> {formData.gameUid}</p>
-          <p><strong>Wallet Balance:</strong> ₹{wallet.balance || 0}</p> {/* Display wallet balance */}
+          <p><strong>Wallet Balance:</strong> ₹{balance || 0}</p>
           <button className="edit-button" onClick={() => setIsEditing(true)}>Edit Profile</button>
         </>
       )}
