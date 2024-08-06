@@ -1,71 +1,106 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { logout } from '../../redux/actions/authAction';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faUser, faGamepad, faTrophy, faCog, faSignOutAlt, faWallet } from '@fortawesome/free-solid-svg-icons';
 import './Navbar.css';
 
 const Navbar = () => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
   const navbarRef = useRef(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const handleLogout = () => {
     dispatch(logout());
   };
 
-  const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen);
+  const toggleSidebar = () => {
+    setIsSidebarOpen((prev) => !prev);
   };
 
   const handleClickOutside = (event) => {
     if (navbarRef.current && !navbarRef.current.contains(event.target)) {
-      setIsMenuOpen(false);
+      setIsSidebarOpen(false);
     }
+  };
+
+  const handleScroll = () => {
+    setIsSidebarOpen(false);
   };
 
   useEffect(() => {
     document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('scroll', handleScroll);
+
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('scroll', handleScroll);
     };
   }, []);
 
+  const commonNavItems = [
+    { to: '/home', icon: 'home', label: 'Home' },
+    { to: '/aboutus', icon: 'info-circle', label: 'About' },
+    { to: '/contactus', icon: 'envelope', label: 'Contact' }
+  ];
+
+  const userNavItems = [
+    ...commonNavItems,
+    { to: '/profile', icon: 'user', label: 'Profile' },
+    { to: '/wallet', icon: 'wallet', label: 'Wallet' },
+    { to: '/tournaments', icon: 'gamepad', label: 'Tournaments' },
+    { to: '/leaderboard', icon: 'trophy', label: 'Leaderboard' },
+    { to: '/settings', icon: 'cog', label: 'Settings' }
+  ];
+
   return (
-    <nav className={`navbar ${isMenuOpen ? 'active' : ''}`} ref={navbarRef}>
-      <div className="navbar-container">
-        <div className="navbar-brand">
-          <Link to="/">Esports Platform</Link>
+    <nav className="navbar" ref={navbarRef}>
+      <button className="navbar-toggle" onClick={toggleSidebar}>
+        <div className={`hamburger ${isSidebarOpen ? 'open' : ''}`}>
+          <span className="line"></span>
+          <span className="line"></span>
+          <span className="line"></span>
         </div>
-        <div className="navbar-toggle" onClick={toggleMenu}>
-          <div className={`hamburger ${isMenuOpen ? 'open' : ''}`}></div>
-          <div className={`hamburger ${isMenuOpen ? 'open' : ''}`}></div>
-          <div className={`hamburger ${isMenuOpen ? 'open' : ''}`}></div>
+      </button>
+      <div className={`sidebar ${isSidebarOpen ? 'active' : ''}`}>
+        <button className="sidebar-close" onClick={() => setIsSidebarOpen(false)}>
+          <span className="sr-only">Close Sidebar</span>
+        </button>
+        <div className="sidebar-menu">
+          <ul className="sidebar-links">
+            {(user ? userNavItems : commonNavItems).map((item) => (
+              <li key={item.to} className="sidebar-item">
+                <Link to={item.to} className="sidebar-link" onClick={() => setIsSidebarOpen(false)}>
+                  <i className={`fa fa-${item.icon}`}></i>
+                  <span className="sidebar-label">{item.label}</span>
+                </Link>
+              </li>
+            ))}
+            {user ? (
+              <li>
+                <button className="logout-btn" onClick={handleLogout}>
+                  <i className="fa fa-sign-out-alt"></i>
+                  <span className="sidebar-label">Logout</span>
+                </button>
+              </li>
+            ) : (
+              <>
+                <li>
+                  <Link to="/signup" className="sidebar-link" onClick={() => setIsSidebarOpen(false)}>
+                    <i className="fa fa-user-plus"></i>
+                    <span className="sidebar-label">Sign Up</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/login" className="sidebar-link" onClick={() => setIsSidebarOpen(false)}>
+                    <i className="fa fa-sign-in-alt"></i>
+                    <span className="sidebar-label">Login</span>
+                  </Link>
+                </li>
+              </>
+            )}
+          </ul>
         </div>
-      </div>
-      <div className={`navbar-links ${isMenuOpen ? 'active' : ''}`}>
-        <ul className="nav-links">
-          <li><Link to="/home">Home</Link></li>
-          <li><Link to="/aboutus">About</Link></li>
-          <li><Link to="/contactus">Contact</Link></li>
-          {user ? (
-            <>
-              <li><Link to="/profile"><FontAwesomeIcon icon={faUser} /> Profile</Link></li>
-              <li><Link to="/wallet"><FontAwesomeIcon icon={faWallet} /> Wallet</Link></li>
-              <li><Link to="/tournaments"><FontAwesomeIcon icon={faGamepad} /> Tournaments</Link></li>
-              <li><Link to="/leaderboard"><FontAwesomeIcon icon={faTrophy} /> Leaderboard</Link></li>
-              <li><Link to="/settings"><FontAwesomeIcon icon={faCog} /> Settings</Link></li>
-              <li><button className="logout-btn" onClick={handleLogout}><FontAwesomeIcon icon={faSignOutAlt} /> Logout</button></li>
-            </>
-          ) : (
-            <>
-              <li><Link to="/signup">Sign Up</Link></li>
-              <li><Link to="/login">Login</Link></li>
-            </>
-          )}
-        </ul>
       </div>
     </nav>
   );

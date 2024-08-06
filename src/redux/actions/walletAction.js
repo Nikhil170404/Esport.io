@@ -1,5 +1,5 @@
-import { doc, getDoc, setDoc, updateDoc, increment } from 'firebase/firestore';
-import { firestore } from '../../firebase'; // Ensure this path is correct
+import { doc, getDoc, updateDoc } from 'firebase/firestore'; // Removed arrayUnion
+import { firestore } from '../../firebase'; 
 
 // Action types
 export const FETCH_WALLET_REQUEST = 'FETCH_WALLET_REQUEST';
@@ -9,24 +9,11 @@ export const UPDATE_WALLET_REQUEST = 'UPDATE_WALLET_REQUEST';
 export const UPDATE_WALLET_SUCCESS = 'UPDATE_WALLET_SUCCESS';
 export const UPDATE_WALLET_FAILURE = 'UPDATE_WALLET_FAILURE';
 
-// Action creators
-
-// Initialize wallet for a new user
-const initializeWallet = async (userId) => {
-  try {
-    const walletRef = doc(firestore, 'wallets', userId);
-    await setDoc(walletRef, { balance: 0 });
-    console.log('Wallet created for user:', userId);
-  } catch (error) {
-    console.error('Error initializing wallet:', error);
-  }
-};
-
-// Fetch wallet
+// Fetch wallet action
 export const fetchWallet = () => async (dispatch, getState) => {
   dispatch({ type: FETCH_WALLET_REQUEST });
   try {
-    const user = getState().auth.user; // Get current user from state
+    const user = getState().auth.user;
     if (!user) throw new Error('User not logged in');
 
     const walletRef = doc(firestore, 'wallets', user.uid);
@@ -38,16 +25,9 @@ export const fetchWallet = () => async (dispatch, getState) => {
         payload: walletDoc.data()
       });
     } else {
-      // Wallet does not exist, create one
-      console.error('No wallet found for this user. Creating a new wallet.');
-      await initializeWallet(user.uid); // Initialize wallet
-      dispatch({
-        type: FETCH_WALLET_FAILURE,
-        payload: 'No wallet found for this user. A new wallet has been created.'
-      });
+      throw new Error('Wallet not found');
     }
   } catch (error) {
-    console.error('Error fetching wallet: ', error);
     dispatch({
       type: FETCH_WALLET_FAILURE,
       payload: error.message
@@ -55,24 +35,24 @@ export const fetchWallet = () => async (dispatch, getState) => {
   }
 };
 
-// Update wallet
-export const updateWallet = (amount) => async (dispatch, getState) => {
+// Update wallet action
+export const updateWallet = (newBalance) => async (dispatch, getState) => {
   dispatch({ type: UPDATE_WALLET_REQUEST });
   try {
-    const user = getState().auth.user; // Get current user from state
+    const user = getState().auth.user;
     if (!user) throw new Error('User not logged in');
 
     const walletRef = doc(firestore, 'wallets', user.uid);
+
     await updateDoc(walletRef, {
-      balance: increment(amount) // Increment balance
+      balance: newBalance,
     });
 
     dispatch({
       type: UPDATE_WALLET_SUCCESS,
-      payload: { amount }
+      payload: { balance: newBalance }
     });
   } catch (error) {
-    console.error('Error updating wallet: ', error);
     dispatch({
       type: UPDATE_WALLET_FAILURE,
       payload: error.message

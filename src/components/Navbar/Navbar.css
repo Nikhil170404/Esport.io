@@ -1,204 +1,179 @@
 /* General Styles */
 .navbar {
-  background-color: #333;
+  background-color: #1a1a1a;
   padding: 0.5rem 1rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
   color: #fff;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
   position: relative;
   transition: background-color 0.3s ease;
 }
 
-.navbar-container {
-  display: flex;
-  align-items: center;
-  width: 100%;
-  justify-content: space-between;
-}
-
-.navbar-brand a {
-  font-size: 1.75rem;
-  color: #fff;
-  text-decoration: none;
-  font-weight: bold;
-  transition: color 0.3s ease;
-}
-
-.navbar-brand a:hover {
-  color: #ddd;
-}
-
+/* Hamburger Menu Styles */
 .navbar-toggle {
-  display: none;
+  display: none; /* Hide on desktop by default */
   flex-direction: column;
   cursor: pointer;
   padding: 0.5rem;
-  position: relative;
-  right: 1rem;
+  background: transparent;
+  border: none;
 }
 
 .hamburger {
-  background-color: white;
+  width: 28px;
+  height: 20px;
+  position: relative;
+  transition: transform 0.3s ease;
+}
+
+.hamburger .line {
+  display: block;
+  width: 100%;
   height: 3px;
-  width: 30px;
-  margin: 5px 0;
-  border-radius: 5px;
-  transition: transform 0.3s ease, opacity 0.3s ease;
+  background-color: #ffcc00;
+  position: absolute;
+  left: 0;
+  transition: background-color 0.3s ease;
 }
 
-.hamburger.open:nth-child(1) {
-  transform: rotate(45deg) translate(5px, 6px);
+.hamburger .line:nth-child(1) {
+  top: 0;
 }
 
-.hamburger.open:nth-child(2) {
+.hamburger .line:nth-child(2) {
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.hamburger .line:nth-child(3) {
+  bottom: 0;
+}
+
+.hamburger.open .line:nth-child(1) {
+  transform: rotate(45deg);
+  top: 50%;
+}
+
+.hamburger.open .line:nth-child(2) {
   opacity: 0;
 }
 
-.hamburger.open:nth-child(3) {
-  transform: rotate(-45deg) translate(6px, -7px);
+.hamburger.open .line:nth-child(3) {
+  transform: rotate(-45deg);
+  bottom: 50%;
 }
 
-.navbar-links {
+/* Sidebar Styles */
+.sidebar {
+  display: none; /* Hide on all devices by default */
+  flex-direction: column;
+  width: 280px;
+  height: 100vh;
+  background-color: #2a2a2a;
+  position: fixed;
+  left: 0;
+  top: 0;
+  transform: translateX(-100%);
+  transition: transform 0.3s ease;
+  z-index: 1000; /* Ensure sidebar is on top */
+}
+
+.sidebar.active {
+  transform: translateX(0);
+}
+
+.sidebar-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background-color: transparent;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  font-size: 1.5rem;
+  transition: color 0.3s ease;
+  z-index: 1100; /* Ensure close button is on top */
+}
+
+.sidebar-close:before {
+  content: '×'; /* Use a multiplication sign for the X */
+  font-size: 1.5rem;
+  line-height: 1;
+  color: #fff; /* Default color */
+}
+
+.sidebar-close:hover:before {
+  color: #e74c3c; /* Change color on hover */
+}
+
+.sidebar-menu {
+  flex: 1;
+  overflow-y: auto;
+  padding-top: 3rem; /* Ensure content is below close button */
+}
+
+.sidebar-links {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.sidebar-item {
+  border-bottom: 1px solid #444;
+}
+
+.sidebar-link {
+  color: #f1f1f1;
+  text-decoration: none;
+  padding: 1rem;
   display: flex;
   align-items: center;
-  width: 100%;
-  justify-content: space-between;
-  transition: opacity 0.3s ease, max-height 0.3s ease;
+  transition: background-color 0.3s ease;
 }
 
-.navbar-links.active {
-  opacity: 1;
-  max-height: 300px; /* Adjust based on your content */
+.sidebar-link:hover {
+  background-color: #333;
 }
 
-.navbar-links.inactive {
-  opacity: 0;
-  max-height: 0;
-  overflow: hidden;
+.sidebar-label {
+  margin-left: 0.75rem;
 }
 
-.nav-links {
-  list-style: none;
-  display: flex;
-  gap: 1rem;
-  margin: 0;
-  padding: 0;
+/* Styles for different devices */
+@media (max-width: 768px) {
+  .navbar-toggle {
+    display: flex; /* Show hamburger on mobile */
+  }
+
+  .sidebar {
+    display: flex; /* Show sidebar on mobile */
+  }
 }
 
-.nav-links li {
-  display: inline;
+@media (min-width: 769px) {
+  .navbar-toggle {
+    display: flex; /* Show hamburger on desktop */
+  }
+
+  .sidebar {
+    display: flex; /* Show sidebar on desktop */
+  }
 }
 
-.nav-links a {
-  color: white;
-  text-decoration: none;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  transition: background-color 0.3s ease, color 0.3s ease;
-  font-weight: 500;
-}
-
-.nav-links a:hover {
-  background-color: #555;
-  color: #fff;
-}
-
+/* Logout Button */
 .logout-btn {
   background-color: #e74c3c;
   color: white;
   border: none;
-  border-radius: 4px;
-  padding: 0.5rem 1rem;
+  border-radius: 50%;
+  padding: 0.75rem;
   cursor: pointer;
-  font-size: 1rem;
+  font-size: 1.2rem;
   transition: background-color 0.3s ease;
-  font-weight: bold;
 }
 
 .logout-btn:hover {
   background-color: #c0392b;
-}
-
-/* Mobile Menu */
-@media (max-width: 768px) {
-  .navbar {
-    flex-direction: column;
-  }
-
-  .navbar-container {
-    width: 100%;
-    position: relative;
-  }
-
-  .navbar-toggle {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-  }
-
-  .navbar-toggle .hamburger {
-    background-color: #fff;
-    border-radius: 5px;
-    transition: all 0.3s ease;
-  }
-
-  .navbar-links {
-    display: none;
-    flex-direction: column;
-    width: 100%;
-    background-color: #333;
-    position: absolute;
-    top: 60px; /* Adjust based on the height of the navbar */
-    left: 0;
-    right: 0;
-    z-index: 10;
-    overflow-y: auto;
-    padding: 1rem;
-  }
-
-  .navbar-links.active {
-    display: flex;
-  }
-
-  .nav-links {
-    flex-direction: column;
-    gap: 0.5rem;
-    width: 100%;
-  }
-
-  .nav-links li {
-    width: 100%;
-  }
-
-  .nav-links a {
-    text-align: center;
-    width: 100%;
-    padding: 1rem;
-    border-bottom: 1px solid #444; /* Adds a separator line */
-  }
-
-  .nav-links a:last-child {
-    border-bottom: none; /* Remove the border from the last item */
-  }
-
-  .logout-btn {
-    width: 100%;
-    text-align: center;
-    margin-top: 1rem;
-    border: none;
-    background-color: #e74c3c;
-    color: white;
-    padding: 0.5rem;
-    font-size: 1rem;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-  }
-
-  .logout-btn:hover {
-    background-color: #c0392b;
-  }
 }

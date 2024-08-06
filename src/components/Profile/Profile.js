@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { updateUser } from '../../redux/actions/authAction';
+import { fetchWallet } from '../../redux/actions/walletAction'; // Import wallet action
 import { doc, onSnapshot } from 'firebase/firestore';
 import { firestore, storage } from '../../firebase';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
@@ -8,6 +9,7 @@ import './Profile.css';
 
 const Profile = () => {
   const { user } = useSelector((state) => state.auth);
+  const wallet = useSelector((state) => state.wallet); // Access wallet from state
   const dispatch = useDispatch();
 
   const [isEditing, setIsEditing] = useState(false);
@@ -35,9 +37,10 @@ const Profile = () => {
         });
       });
 
+      dispatch(fetchWallet()); // Fetch wallet information
       return () => unsubscribe();
     }
-  }, [user?.uid]);
+  }, [user?.uid, dispatch]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -133,6 +136,7 @@ const Profile = () => {
           <p><strong>Age:</strong> {formData.age}</p>
           <p><strong>Bio:</strong> {formData.bio}</p>
           <p><strong>Game UID:</strong> {formData.gameUid}</p>
+          <p><strong>Wallet Balance:</strong> ₹{wallet.balance || 0}</p> {/* Display wallet balance */}
           <button className="edit-button" onClick={() => setIsEditing(true)}>Edit Profile</button>
         </>
       )}

@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { joinTournament } from '../../redux/actions/tournamentActions';
 import { fetchWallet } from '../../redux/actions/walletAction'; // Removed updateWallet import
 import { firestore } from '../../firebase';
-import { doc, onSnapshot, updateDoc, getDoc, arrayUnion } from 'firebase/firestore';
+import { doc, onSnapshot, updateDoc, getDoc, arrayUnion, FieldValue } from 'firebase/firestore';
 import './TournamentCard.css';
 
 const TournamentCard = ({
@@ -84,6 +84,15 @@ const TournamentCard = ({
     }
   };
 
+  const updateWalletBalance = async (amount) => {
+    if (user) {
+      const userWalletRef = doc(firestore, 'users', user.uid);
+      await updateDoc(userWalletRef, {
+        balance: FieldValue.increment(-amount) // Decrement the balance
+      });
+    }
+  };
+
   const handleJoin = async () => {
     if (!user) {
       console.error("User is not logged in");
@@ -111,6 +120,7 @@ const TournamentCard = ({
         if (entryFee > 0) {
           const paymentSuccess = await handlePayment();
           if (!paymentSuccess) return;
+          await updateWalletBalance(entryFee); // Deduct the entry fee from wallet
         }
 
         const tournamentRef = doc(firestore, 'tournaments', id);
@@ -246,23 +256,19 @@ const TournamentCard = ({
         )}
         {showCredentials && (
           <div className="tournament-credentials">
-            <h4>Tournament Credentials:</h4>
             <p>Room ID: {tournamentCredentials.roomId}</p>
-            <p>Room Password: {tournamentCredentials.roomPassword}</p>
+            <p>Password: {tournamentCredentials.roomPassword}</p>
           </div>
         )}
         {showPaymentPrompt && (
           <div className="payment-prompt">
-            <p>You need to add funds to your wallet to join this tournament. Please go to the payment section.</p>
-            <button onClick={() => setShowPaymentPrompt(false)}>Close</button>
+            <p>Your balance is insufficient. Please add funds and try again.</p>
           </div>
         )}
       </div>
-      <div className="tournament-card-footer">
-        <button onClick={onFavorite} className={`favorite-button ${isFavorite ? 'favorite' : ''}`}>
-          {isFavorite ? 'Unfavorite' : 'Favorite'}
-        </button>
-      </div>
+      <button className="favorite-button" onClick={onFavorite}>
+        {isFavorite ? 'Unfavorite' : 'Favorite'}
+      </button>
     </div>
   );
 };
