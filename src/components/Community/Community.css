@@ -1,0 +1,52 @@
+.community {
+    padding: 20px;
+  }
+  
+  .community-post-form {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .community-post-form textarea {
+    width: 100%;
+    height: 100px;
+    margin-bottom: 10px;
+  }
+  
+  .community-post-form input {
+    margin-bottom: 10px;
+  }
+  
+  .community-posts {
+    margin-top: 20px;
+  }
+  
+  .community-post {
+    border: 1px solid #ddd;
+    padding: 10px;
+    margin-bottom: 20px;
+  }
+  
+  .community-post img {
+    max-width: 100%;
+    height: auto;
+  }
+  
+  .community-post-actions {
+    display: flex;
+    align-items: center;
+  }
+  
+  .community-post-actions button {
+    margin-right: 10px;
+  }
+  
+  .community-post-comments {
+    margin-top: 10px;
+  }
+  
+  .community-post-comment {
+    border-top: 1px solid #eee;
+    padding-top: 10px;
+  }
+  

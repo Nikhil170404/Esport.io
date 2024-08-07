@@ -15,6 +15,7 @@ import ContactUs from './components/ContactUs/ContactUs';
 import Tournaments from './components/Tournaments/Tournaments';
 import Leaderboard from './components/Leaderboard/Leaderboard';
 import Settings from './components/Settings/Settings';
+import Community from './components/Community/Community';
 import Wallet from './components/Wallet/Wallet'; // Import Wallet component
 import './index.css';
 
@@ -54,6 +55,7 @@ const App = () => {
           <Route path="/tournaments" element={user ? <Tournaments /> : <Navigate to="/login" />} />
           <Route path="/leaderboard" element={user ? <Leaderboard /> : <Navigate to="/login" />} />
           <Route path="/settings" element={user ? <Settings /> : <Navigate to="/login" />} />
+          <Route path="/community" element={user ? <Community /> : <Navigate to="/login" />} />
           <Route path="/wallet" element={user ? <Wallet /> : <Navigate to="/login" />} /> {/* Wallet Route */}
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>

@@ -1,3 +1,4 @@
+// src/components/Navbar/Navbar.js
 import React, { useRef, useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { Link } from 'react-router-dom';
@@ -50,6 +51,7 @@ const Navbar = () => {
     { to: '/wallet', icon: 'wallet', label: 'Wallet' },
     { to: '/tournaments', icon: 'gamepad', label: 'Tournaments' },
     { to: '/leaderboard', icon: 'trophy', label: 'Leaderboard' },
+    { to: '/community', icon: 'users', label: 'Community' }, // New community link
     { to: '/settings', icon: 'cog', label: 'Settings' }
   ];
 
