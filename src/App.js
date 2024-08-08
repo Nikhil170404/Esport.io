@@ -16,7 +16,10 @@ import Tournaments from './components/Tournaments/Tournaments';
 import Leaderboard from './components/Leaderboard/Leaderboard';
 import Settings from './components/Settings/Settings';
 import Community from './components/Community/Community';
-import Wallet from './components/Wallet/Wallet'; // Import Wallet component
+import Wallet from './components/Wallet/Wallet';
+import PostAchievement from './components/PostAchievement/PostAchievement'; // Import PostAchievement component
+import GroupChat from './components/GroupChat/GroupChat'; // Import GroupChat component
+import GroupManagement from './components/GroupManagement/GroupManagement'; // Import GroupManagement component
 import './index.css';
 
 const App = () => {
@@ -56,7 +59,10 @@ const App = () => {
           <Route path="/leaderboard" element={user ? <Leaderboard /> : <Navigate to="/login" />} />
           <Route path="/settings" element={user ? <Settings /> : <Navigate to="/login" />} />
           <Route path="/community" element={user ? <Community /> : <Navigate to="/login" />} />
-          <Route path="/wallet" element={user ? <Wallet /> : <Navigate to="/login" />} /> {/* Wallet Route */}
+          <Route path="/wallet" element={user ? <Wallet /> : <Navigate to="/login" />} />
+          <Route path="/postachievement" element={user ? <PostAchievement /> : <Navigate to="/login" />} /> {/* Post Achievement Route */}
+          <Route path="/groupchat/:groupId" element={user ? <GroupChat /> : <Navigate to="/login" />} /> {/* Group Chat Route */}
+          <Route path="/groupmanagement" element={user ? <GroupManagement /> : <Navigate to="/login" />} /> {/* Group Management Route */}
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </div>

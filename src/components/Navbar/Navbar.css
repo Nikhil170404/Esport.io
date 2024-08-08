@@ -177,3 +177,72 @@
 .logout-btn:hover {
   background-color: #c0392b;
 }
+/* Dropdown Container */
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown-toggle {
+  background-color: #2a2a2a;
+  color: #f1f1f1;
+  padding: 1rem;
+  text-align: left;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.dropdown-toggle:hover {
+  background-color: #333;
+}
+
+.dropdown-toggle:focus {
+  outline: none;
+}
+
+.dropdown-toggle i {
+  margin-right: 0.75rem;
+}
+
+.dropdown-menu {
+  display: none;
+  position: absolute;
+  background-color: #2a2a2a;
+  min-width: 200px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+  margin-top: 0.5rem;
+}
+
+.dropdown-menu a {
+  color: #f1f1f1;
+  padding: 0.75rem 1rem;
+  text-decoration: none;
+  display: block;
+  transition: background-color 0.3s ease;
+}
+
+.dropdown-menu a:hover {
+  background-color: #333;
+}
+
+.dropdown:hover .dropdown-menu {
+  display: block;
+}
+
+.dropdown-menu .fa {
+  margin-right: 0.5rem;
+}
+
+/* Additional styles for better visuals */
+.sidebar-item.dropdown {
+  border-bottom: none; /* Remove border from dropdown parent item */
+}
+
+.sidebar-item.dropdown .sidebar-link {
+  padding-right: 2rem; /* Adjust padding for dropdown item */
+}

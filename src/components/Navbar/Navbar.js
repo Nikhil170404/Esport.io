@@ -1,4 +1,3 @@
-// src/components/Navbar/Navbar.js
 import React, { useRef, useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { Link } from 'react-router-dom';
@@ -10,6 +9,8 @@ const Navbar = () => {
   const { user } = useSelector((state) => state.auth);
   const navbarRef = useRef(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isCommunityDropdownOpen, setIsCommunityDropdownOpen] = useState(false);
+  const [isGroupDropdownOpen, setIsGroupDropdownOpen] = useState(false);
 
   const handleLogout = () => {
     dispatch(logout());
@@ -19,14 +20,26 @@ const Navbar = () => {
     setIsSidebarOpen((prev) => !prev);
   };
 
+  const toggleCommunityDropdown = () => {
+    setIsCommunityDropdownOpen((prev) => !prev);
+  };
+
+  const toggleGroupDropdown = () => {
+    setIsGroupDropdownOpen((prev) => !prev);
+  };
+
   const handleClickOutside = (event) => {
     if (navbarRef.current && !navbarRef.current.contains(event.target)) {
       setIsSidebarOpen(false);
+      setIsCommunityDropdownOpen(false);
+      setIsGroupDropdownOpen(false);
     }
   };
 
   const handleScroll = () => {
     setIsSidebarOpen(false);
+    setIsCommunityDropdownOpen(false);
+    setIsGroupDropdownOpen(false);
   };
 
   useEffect(() => {
@@ -51,7 +64,20 @@ const Navbar = () => {
     { to: '/wallet', icon: 'wallet', label: 'Wallet' },
     { to: '/tournaments', icon: 'gamepad', label: 'Tournaments' },
     { to: '/leaderboard', icon: 'trophy', label: 'Leaderboard' },
-    { to: '/community', icon: 'users', label: 'Community' }, // New community link
+    {
+      to: '#', icon: 'userpostss', label: 'Community', dropdown: true, dropdownItems: [
+        { to: '/community', label: 'View Posts' },
+        { to: '/postachievement', label: 'Post Achievement' },
+        { to: '/events', label: 'Upcoming Events' },
+        { to: '/groupchat', label: 'Chat' }
+      ]
+    },
+    {
+      to: '#', icon: 'group', label: 'Groups', dropdown: true, dropdownItems: [
+        { to: '/groupmanagement', label: 'Manage Groups' },
+        { to: '/groupchat/', label: 'Group Chat' } 
+      ]
+    },
     { to: '/settings', icon: 'cog', label: 'Settings' }
   ];
 
@@ -66,20 +92,37 @@ const Navbar = () => {
       </button>
       <div className={`sidebar ${isSidebarOpen ? 'active' : ''}`}>
         <button className="sidebar-close" onClick={() => setIsSidebarOpen(false)}>
-          <span className="sr-only">Close Sidebar</span>
+          <span className="sr-only"></span>
         </button>
         <div className="sidebar-menu">
           <ul className="sidebar-links">
-            {(user ? userNavItems : commonNavItems).map((item) => (
-              <li key={item.to} className="sidebar-item">
-                <Link to={item.to} className="sidebar-link" onClick={() => setIsSidebarOpen(false)}>
-                  <i className={`fa fa-${item.icon}`}></i>
-                  <span className="sidebar-label">{item.label}</span>
-                </Link>
+            {(user ? userNavItems : commonNavItems).map((item, index) => (
+              <li key={`${item.to}-${index}`} className="sidebar-item">
+                {item.dropdown ? (
+                  <div className="dropdown">
+                    <button className="sidebar-link dropdown-toggle" onClick={item.label === 'Community' ? toggleCommunityDropdown : toggleGroupDropdown}>
+                      <i className={`fa fa-${item.icon}`}></i>
+                      <span className="sidebar-label">{item.label}</span>
+                      <i className="fa fa-caret-down"></i>
+                    </button>
+                    <div className={`dropdown-menu ${item.label === 'Community' ? isCommunityDropdownOpen : isGroupDropdownOpen ? 'show' : ''}`}>
+                      {item.dropdownItems.map((dropdownItem, idx) => (
+                        <Link key={`${dropdownItem.to}-${idx}`} to={dropdownItem.to} className="dropdown-item" onClick={() => setIsSidebarOpen(false)}>
+                          {dropdownItem.label}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <Link to={item.to} className="sidebar-link" onClick={() => setIsSidebarOpen(false)}>
+                    <i className={`fa fa-${item.icon}`}></i>
+                    <span className="sidebar-label">{item.label}</span>
+                  </Link>
+                )}
               </li>
             ))}
             {user ? (
-              <li>
+              <li key="logout">
                 <button className="logout-btn" onClick={handleLogout}>
                   <i className="fa fa-sign-out-alt"></i>
                   <span className="sidebar-label">Logout</span>
@@ -87,13 +130,13 @@ const Navbar = () => {
               </li>
             ) : (
               <>
-                <li>
+                <li key="signup">
                   <Link to="/signup" className="sidebar-link" onClick={() => setIsSidebarOpen(false)}>
                     <i className="fa fa-user-plus"></i>
                     <span className="sidebar-label">Sign Up</span>
                   </Link>
                 </li>
-                <li>
+                <li key="login">
                   <Link to="/login" className="sidebar-link" onClick={() => setIsSidebarOpen(false)}>
                     <i className="fa fa-sign-in-alt"></i>
                     <span className="sidebar-label">Login</span>
