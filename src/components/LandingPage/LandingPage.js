@@ -8,8 +8,6 @@ const LandingPage = () => {
         <h1>Welcome to the Esports Platform</h1>
         <p>Your gateway to exciting esports tournaments and gaming experiences.</p>
         <div className="cta-buttons">
-          <a href="/sign-up" className="cta-button">Sign Up</a>
-          <a href="/explore" className="cta-button">Explore</a>
         </div>
       </section>
       <section className="info-section">
