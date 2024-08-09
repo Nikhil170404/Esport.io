@@ -1,14 +1,14 @@
 {
   "files": {
-    "main.css": "/Esport.io/static/css/main.1d3c2742.css",
-    "main.js": "/Esport.io/static/js/main.c96a01cc.js",
+    "main.css": "/Esport.io/static/css/main.3dc0c283.css",
+    "main.js": "/Esport.io/static/js/main.14cc2877.js",
     "static/media/background.jpg": "/Esport.io/static/media/background.212107a03df69f288da0.jpg",
     "index.html": "/Esport.io/index.html",
-    "main.1d3c2742.css.map": "/Esport.io/static/css/main.1d3c2742.css.map",
-    "main.c96a01cc.js.map": "/Esport.io/static/js/main.c96a01cc.js.map"
+    "main.3dc0c283.css.map": "/Esport.io/static/css/main.3dc0c283.css.map",
+    "main.14cc2877.js.map": "/Esport.io/static/js/main.14cc2877.js.map"
   },
   "entrypoints": [
-    "static/css/main.1d3c2742.css",
-    "static/js/main.c96a01cc.js"
+    "static/css/main.3dc0c283.css",
+    "static/js/main.14cc2877.js"
   ]
 }
