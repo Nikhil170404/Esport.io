@@ -75,7 +75,6 @@ const Navbar = () => {
     {
       to: '#', icon: 'group', label: 'Groups', dropdown: true, dropdownItems: [
         { to: '/groupmanagement', label: 'Manage Groups' },
-        { to: '/groupchat/', label: 'Group Chat' } 
       ]
     },
     { to: '/settings', icon: 'cog', label: 'Settings' }

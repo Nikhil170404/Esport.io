@@ -1,6 +1,7 @@
-// src/components/PostAchievement.js
 import React, { useState } from 'react';
 import { firestore, storage } from '../../firebase';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { collection, addDoc } from 'firebase/firestore';
 
 const PostAchievement = () => {
   const [title, setTitle] = useState('');
@@ -11,13 +12,16 @@ const PostAchievement = () => {
   const handlePost = async () => {
     setLoading(true);
     let mediaUrl = '';
+
     if (image) {
-      const imageRef = storage.ref(`achievements/${image.name}`);
-      await imageRef.put(image);
-      mediaUrl = await imageRef.getDownloadURL();
+      const imageRef = ref(storage, `achievements/${image.name}`);
+      await uploadBytes(imageRef, image);
+      mediaUrl = await getDownloadURL(imageRef);
     }
 
-    await firestore.collection('posts').add({
+    const postsCollectionRef = collection(firestore, 'posts'); // Get reference to the 'posts' collection
+
+    await addDoc(postsCollectionRef, {
       title,
       content,
       author: 'User ID or Name',

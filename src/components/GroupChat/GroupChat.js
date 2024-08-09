@@ -1,5 +1,5 @@
-// src/components/GroupChat.js
 import React, { useState, useEffect } from 'react';
+import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp } from 'firebase/firestore';
 import { firestore } from '../../firebase';
 
 const GroupChat = ({ groupId }) => {
@@ -7,20 +7,22 @@ const GroupChat = ({ groupId }) => {
   const [newMessage, setNewMessage] = useState('');
 
   useEffect(() => {
-    const unsubscribe = firestore.collection('chats').doc(groupId).collection('messages')
-      .orderBy('createdAt')
-      .onSnapshot(snapshot => {
-        setMessages(snapshot.docs.map(doc => doc.data()));
-      });
+    const messagesRef = collection(firestore, 'chats', groupId, 'messages');
+    const q = query(messagesRef, orderBy('createdAt'));
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      setMessages(snapshot.docs.map(doc => doc.data()));
+    });
 
     return () => unsubscribe();
   }, [groupId]);
 
   const handleSendMessage = async () => {
-    await firestore.collection('chats').doc(groupId).collection('messages').add({
+    const messagesRef = collection(firestore, 'chats', groupId, 'messages');
+    await addDoc(messagesRef, {
       text: newMessage,
       author: 'User ID or Name',
-      createdAt: new Date(),
+      createdAt: serverTimestamp(),
     });
     setNewMessage('');
   };
